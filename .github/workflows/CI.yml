@@ -27,7 +27,7 @@ jobs:
       matrix:
         include:
           - build_variant: "mt7628"
-            targets: "MI-NANO"
+            targets: "MI-4C"
     steps:
       - uses: actions/checkout@v2
       - name: Prepare environment
