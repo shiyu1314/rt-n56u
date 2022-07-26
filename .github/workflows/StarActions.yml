@@ -1,17 +1,9 @@
-name: CI
+name: StarActions
 
-# Controls when the action will run. 
 on: 
-  push:
-  pull_request:
-  workflow_dispatch:
-    inputs:
-      debug_enabled:
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
-        required: false
-        default: 'no'
-  release:
-    types: [published]
+# 点击☆Star开始编译
+  watch:
+    types: [started]
 
 env:
       images_dir: /opt/images
@@ -19,26 +11,28 @@ env:
       cac_git: https://github.com/${{ github.repository }}.git
       cac_tmp: /opt/cac
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     name: build
     runs-on: ubuntu-20.04
-    if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) }}
+    if: github.event.repository.owner.id == github.event.sender.id
     env:
       build_variant: ${{ matrix.build_variant }}
       targets: ${{ matrix.targets }}
     strategy:
       matrix:
         include:
-          - build_variant: "mt7620"
-            targets: "PSG1208 PSG1218 NEWIFI-MINI MI-MINI MI-3 OYE-001 5K-W20"
-          - build_variant: "mt7628"
-            targets: "HC5861B MI-NANO MZ-R13 MZ-R13P 360P2 HC5761A HC5661A"
-          - build_variant: "mt7621"
-            targets: "K2P_nano K2P DIR-878 RM2100 CR660x"
+#          - build_variant: "mt7620"
+#            targets: "PSG1208 PSG1218 NEWIFI-MINI MI-MINI MI-3 OYE-001 5K-W20"
+#          - build_variant: "mt7628"
+#            targets: "HC5861B MI-NANO MZ-R13 MZ-R13P 360P2 HC5761A HC5661A"
+#          - build_variant: "mt7621"
+#            targets: "K2P_nano K2P DIR-878 RM2100 CR660x"
+#          - build_variant: "mt7621-usb"
+#            targets: "XY-C1 JCG-836PRO JCG-AC860M JCG-Y2 DIR-882 A3004NS MSG1500 WR1200JS MI-R3G NEWIFI3 B70"
+# 选择需要编译的机型
           - build_variant: "mt7621-usb"
-            targets: "XY-C1 JCG-836PRO JCG-AC860M JCG-Y2 DIR-882 A3004NS MSG1500 WR1200JS MI-R3G NEWIFI3 B70"
+            targets: "NEWIFI3"
     steps:
       - uses: actions/checkout@v2
       - name: Prepare environment
@@ -112,7 +106,7 @@ jobs:
           SP "CONFIG_FIRMWARE_ENABLE_FUSE"                       "n" "设置FUSE用户空间文件系统"
           SP "CONFIG_FIRMWARE_INCLUDE_LPRD"                      "n" "设置LPR打印"
           SP "CONFIG_FIRMWARE_INCLUDE_TCPDUMP"                   "n" "设置TCPdump网络抓包工具"
-          SP "CONFIG_FIRMWARE_INCLUDE_TTYD"                      "n" "设置ttyd网页版远程终端"
+          SP "CONFIG_FIRMWARE_INCLUDE_TTYD"                      "y" "设置ttyd网页版远程终端"
           SP "CONFIG_FIRMWARE_INCLUDE_LRZSZ"                     "n" "设置lrzsz文件传输工具"
           SP "CONFIG_FIRMWARE_INCLUDE_HTOP"                      "n" "设置Htop系统监控与进程管理"
           SP "CONFIG_FIRMWARE_INCLUDE_NANO"                      "n" "设置nano文本编辑器命令行工具"
@@ -134,8 +128,8 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_SFE"                       "y" "设置SFE(shortcut-fe)软件加速"
           SP "CONFIG_FIRMWARE_INCLUDE_SMARTDNS"                  "n" "设置SmartDNS本地DNS服务器"
           SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "y" "设置SSP代理shadowsocks"
-          SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "n" "设置SSP代理trojan"
-          SP "CONFIG_FIRMWARE_INCLUDE_SSV2RP"                    "n" "设置SSP代理SS插件v2ray-plugin"
+          SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "y" "设置SSP代理trojan"
+          SP "CONFIG_FIRMWARE_INCLUDE_SSV2RP"                    "y" "设置SSP代理SS插件v2ray-plugin"
           ######################################################################################################
           SP "CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE"               "n" "设置OpenSSL可执行程序"
           ######################################################################################################
@@ -159,24 +153,15 @@ jobs:
           then cp -f images/*.trx ${images_dir}/$m.${{ env.VER }}_${{ env.REV }}.trx; \
           else exit 1; fi; ./clear_tree_simple >/dev/null 2>&1; done
       - name: Create archive
-        if: ${{ github.event_name != 'release' && success() }}
         run: |
           ls -lh ${images_dir}
-          image_name="${{ env.VER }}${{ env.RMD }}_${build_variant}"
+          build_targets=$(echo "${targets}" | sed 's/ /_/g')
+          image_name="${{ env.VER }}${{ env.RMD }}_${build_variant}_${build_targets}"
           cd ${images_dir}; md5sum *.trx |tee md5sum.txt; 7z a -mx=9 ${image_name}.7z ./*
           echo "image_name=${image_name}" >> $GITHUB_ENV
+# 编译完成的固件到Artifacts下载
       - name: Upload images to Artifact
-        if: ${{ github.event_name != 'release' && success() }}
         uses: actions/upload-artifact@v2.2.1
         with:
           name: ${{ env.image_name }}
           path: ${{ env.images_dir }}/*.7z
-      - name: Upload images to Releases
-        if: ${{ github.event_name == 'release' && success() }}
-        uses: svenstaro/upload-release-action@2.2.0
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.images_dir }}/*.trx
-          tag: ${{ github.ref }}
-          overwrite: true
-          file_glob: true
