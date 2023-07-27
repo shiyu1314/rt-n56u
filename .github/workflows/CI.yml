@@ -3,6 +3,8 @@ name: CI
 # Controls when the action will run. 
 on: 
   push:
+    branches:
+      - 'main'
   pull_request:
   workflow_dispatch:
     inputs:
