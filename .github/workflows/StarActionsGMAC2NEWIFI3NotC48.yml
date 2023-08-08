@@ -33,9 +33,9 @@ jobs:
           sudo apt install libtool-bin gperf python3-docutils autopoint gettext
       - name: Config and Custom
         run: |
-          git clone -b ${cac_branch} ${cac_git} ${cac_tmp}
-          cd ${GITHUB_WORKSPACE}
-          cp -rf ${cac_tmp}/* ${GITHUB_WORKSPACE} && rm -rf ${cac_tmp}
+          # git clone -b ${cac_branch} ${cac_git} ${cac_tmp}
+          # cd ${GITHUB_WORKSPACE}
+          # cp -rf ${cac_tmp}/* ${GITHUB_WORKSPACE} && rm -rf ${cac_tmp}
           cd ${GITHUB_WORKSPACE}/trunk
           sed -i '/FIRMWARE_BUILDS_VER=/d' versions.inc
           sed -i '/FIRMWARE_BUILDS_REV=/d' versions.inc
