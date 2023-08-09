@@ -3,9 +3,10 @@ THISDIR = $(shell pwd)
 
 all :
 	( if [ ! -f chnroute.bz2 ];then \
-		wget -t3 -4 --timeout=5 -O chnroute.txt.tmp '$(url)' && \
-		awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $$4, 32-log($$5)/log(2)) }' < chnroute.txt.tmp > chnroute.txt && \
-		rm -f chnroute.txt.tmp && tar jcf chnroute.bz2 chnroute.txt ;\
+		wget -t8 -4 --timeout=8 -U Mozilla -O route.txt.tmp '$(url)' && sed -i '/\*/d' route.txt.tmp && \
+		awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $$4, 32-log($$5)/log(2)) }' < route.txt.tmp > chnroute.txt && \
+		rm -f route.txt.tmp && \
+		tar jcf chnroute.bz2 chnroute.txt ;\
 	fi )
 
 romfs:

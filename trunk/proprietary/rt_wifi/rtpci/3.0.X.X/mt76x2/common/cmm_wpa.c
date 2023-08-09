@@ -833,14 +833,14 @@ BOOLEAN PeerWpaMessageSanity(
 			/* send wireless event - for MIC different*/
 				RTMPSendWirelessEvent(pAd, IW_MIC_DIFF_EVENT_FLAG, pEntry->Addr, pEntry->apidx, 0); 
 
-			if (MsgType < EAPOL_GROUP_MSG_1)
-			{
-            	DBGPRINT(RT_DEBUG_ERROR, ("MIC Different in pairwise msg %d of 4-way handshake!\n", MsgType));
-			}
-			else
-			{
-				DBGPRINT(RT_DEBUG_ERROR, ("MIC Different in group msg %d of 2-way handshake!\n", (MsgType - EAPOL_PAIR_MSG_4)));
-			}
+			//if (MsgType < EAPOL_GROUP_MSG_1)
+			//{
+      //      	DBGPRINT(RT_DEBUG_ERROR, ("MIC Different in pairwise msg %d of 4-way handshake!\n", MsgType));
+			//}
+			//else
+			//{
+			//	DBGPRINT(RT_DEBUG_ERROR, ("MIC Different in group msg %d of 2-way handshake!\n", (MsgType - EAPOL_PAIR_MSG_4)));
+			//}
 	
 			hex_dump("Received MIC", rcvd_mic, LEN_KEY_DESC_MIC);
 			hex_dump("Desired  MIC", mic, LEN_KEY_DESC_MIC);

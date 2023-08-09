@@ -197,6 +197,7 @@ func_fill()
 	dir_wlan="$dir_storage/wlan"
 	dir_chnroute="$dir_storage/chinadns"
 	dir_gfwlist="$dir_storage/gfwlist"
+	dir_cacerts="$dir_storage/cacerts"
 
 	script_start="$dir_storage/start_script.sh"
 	script_started="$dir_storage/started_script.sh"
@@ -217,9 +218,10 @@ func_fill()
 	user_sswan_conf="$dir_sswan/strongswan.conf"
 	user_sswan_ipsec_conf="$dir_sswan/ipsec.conf"
 	user_sswan_secrets="$dir_sswan/ipsec.secrets"
-	
+
 	chnroute_file="/etc_ro/chnroute.bz2"
-	gfwlist_conf_file="/etc_ro/gfwlist.bz2"
+	gfwlist_file="/etc_ro/gfwlist.bz2"
+	cacerts_file="/etc_ro/cacerts.bz2"
 
 	# create crond dir
 	[ ! -d "$dir_crond" ] && mkdir -p -m 730 "$dir_crond"
@@ -236,8 +238,15 @@ func_fill()
 
 	# create gfwlist
 	if [ ! -d "$dir_gfwlist" ] ; then
-		if [ -f "$gfwlist_conf_file" ]; then	
-			mkdir -p "$dir_gfwlist" && tar jxf "$gfwlist_conf_file" -C "$dir_gfwlist"
+		if [ -f "$gfwlist_file" ]; then	
+			mkdir -p "$dir_gfwlist" && tar jxf "$gfwlist_file" -C "$dir_gfwlist"
+		fi
+	fi
+
+	# create cacerts
+	if [ ! -d "$dir_cacerts" ] ; then
+		if [ -f "$cacerts_file" ]; then	
+			mkdir -p "$dir_cacerts" && tar jxf "$cacerts_file" -C "$dir_cacerts"
 		fi
 	fi
 
@@ -274,12 +283,15 @@ sync && echo 3 > /proc/sys/vm/drop_caches
 # Mount SATA disk
 #mdev -s
 
+EOF
+	if [ -f /usr/bin/wing ]; then
+		cat >> "$script_started" <<EOF
 #wing <HOST:443> <PASS>
 #wing 192.168.1.9:1080
 #ipset add gfwlist 8.8.4.4
 
-
 EOF
+	fi
 		chmod 755 "$script_started"
 	fi
 
@@ -305,9 +317,13 @@ EOF
 ### Custom user script
 ### Called after internal iptables reconfig (firewall update)
 
+EOF
+	if [ -f /usr/bin/wing ]; then
+		cat >> "$script_postf" <<EOF
 #wing resume
 
 EOF
+	fi
 		chmod 755 "$script_postf"
 	fi
 
@@ -461,6 +477,11 @@ EOF
 	for i in dnsmasq.conf hosts ; do
 		[ -f "$dir_storage/$i" ] && mv -n "$dir_storage/$i" "$dir_dnsmasq"
 	done
+	if $(cat "$user_dnsmasq_conf" | grep -q "^conf-dir=/tmp/SSP/gfwlist") || \
+	$(cat "$user_dnsmasq_conf" | grep -q "^gfwlist=/etc/storage/gfwlist") || \
+	$(cat "$user_dnsmasq_conf" | grep -q "^min-cache-ttl=") ; then
+		rm -f "$user_dnsmasq_conf"
+	fi
 	if [ ! -f "$user_dnsmasq_conf" ] ; then
 		cat > "$user_dnsmasq_conf" <<EOF
 # Custom user conf file for dnsmasq
@@ -516,9 +537,10 @@ EOF
 
 	if [ -d $dir_gfwlist ]; then
 		cat >> "$user_dnsmasq_conf" <<EOF
-### gfwlist related (resolve by port 5353)
+### gfwlist related resolve
 #min-cache-ttl=3600
-#conf-dir=/etc/storage/gfwlist
+#conf-dir=/tmp/SSP/gfwlist
+#gfwlist=/etc/storage/gfwlist/gfwlist_domain.txt@8.8.4.4~53
 
 EOF
 	fi

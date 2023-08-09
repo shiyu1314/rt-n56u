@@ -764,6 +764,10 @@ full_restart_lan(void)
 	/* start ARP network scanner */
 	start_networkmap(1);
 
+#if BOARD_HAS_2G_RADIO
+	restart_iappd();
+#endif
+
 	/* force httpd logout */
 	doSystem("killall %s %s", "-SIGUSR1", "httpd");
 }

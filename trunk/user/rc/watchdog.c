@@ -46,7 +46,7 @@
 
 #define BTN_EZ_WAIT		3		/* 3s */
 #define BTN_EZ_WAIT_COUNT	(BTN_EZ_WAIT * 10)
-#define BTN_EZ_CANCEL_COUNT	8		/* 800ms */
+#define BTN_EZ_CANCEL_COUNT	10		/* 1s */
 
 #define WD_NOTIFY_ID_WIFI2	1
 #define WD_NOTIFY_ID_WIFI5	2
@@ -69,6 +69,9 @@ static int ntpc_server_idx = 0;
 static int ntpc_tries = 0;
 
 static int httpd_missing = 0;
+#if BOARD_HAS_2G_RADIO
+static int iappd_missing = 0;
+#endif
 static int dnsmasq_missing = 0;
 
 static struct itimerval wd_itv;
@@ -203,6 +206,49 @@ get_state_led_pwr(void)
 }
 #endif
 
+static void
+ez_action_led_toggle(void)
+{
+	int is_show = (nvram_get_int("led_front_t")) ? 0 : 1;
+
+	show_hide_front_leds(is_show);
+}
+
+static void
+ez_action_reboot(void)
+{
+	logmessage("watchdog", "Perform ez-button %s...", "reboot");
+	write_storage_to_mtd();
+#if defined (USE_STORAGE)
+	safe_remove_all_stor_devices(1);
+#endif
+#if defined (USE_USB_SUPPORT)
+#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
+	power_control_usb_port(0, 0);
+#endif
+#endif
+	sys_exit();
+}
+
+static void
+ez_action_shutdown(void)
+{
+	logmessage("watchdog", "Perform ez-button %s...", "shutdown");
+	write_storage_to_mtd();
+#if defined(APP_SHADOWSOCKS)
+	stop_ss();
+#endif
+#if defined (USE_STORAGE)
+	safe_remove_all_stor_devices(1);
+#endif
+#if defined (USE_USB_SUPPORT)
+#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
+	power_control_usb_port(0, 0);
+#endif
+#endif
+	sys_stop();
+}
+
 #if defined (BOARD_GPIO_BTN_RESET)
 static int
 btn_check_reset(void)
@@ -249,7 +295,7 @@ btn_check_reset(void)
 		int press_count = btn_count_reset;
 		btn_count_reset = 0;
 		
-		if (press_count > BTN_RESET_WAIT_COUNT) {
+		if (press_count >= BTN_RESET_WAIT_COUNT) {
 			/* pressed >= 5sec, reset! */
 			wd_alarmtimer(0, 0);
 #if defined (BOARD_GPIO_LED_POWER)
@@ -257,7 +303,7 @@ btn_check_reset(void)
 #endif
 			erase_nvram();
 			erase_storage();
-			sys_exit();
+			ez_action_reboot();
 		} else if (press_count > 0) {
 #if defined (BOARD_GPIO_LED_POWER)
 			LED_CONTROL(BOARD_GPIO_LED_POWER, LED_ON);
@@ -268,7 +314,6 @@ btn_check_reset(void)
 	return (i_button_value != BTN_PRESSED) ? 0 : 1;
 }
 #endif
-
 
 #if defined (BOARD_GPIO_BTN_WPS) || defined (BOARD_GPIO_BTN_FN1) || defined (BOARD_GPIO_BTN_FN2)
 static int
@@ -289,9 +334,19 @@ btn_check_ez(int btn_pin, int btn_id, int *p_btn_state)
 		/* BTN pressed */
 		(*p_btn_state)++;
 		
+		if (*p_btn_state == BTN_EZ_CANCEL_COUNT) {
+			/* pressed == 1s */
+			ez_action_led_toggle(); // toggle front LED
+		}
+		
+		if (*p_btn_state == BTN_EZ_WAIT_COUNT) {
+			/* pressed == 3s */
+			ez_action_led_toggle(); // toggle front LED
+		}
+		
 #if defined (BOARD_GPIO_LED_POWER)
-		/* flash alert LED */
 		if (*p_btn_state > BTN_EZ_WAIT_COUNT) {
+		/* pressed > 3s flash alert LED */
 			int i_led = get_state_led_pwr();
 			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, ((*p_btn_state) % 2) ? i_led : !i_led);
 		}
@@ -301,13 +356,14 @@ btn_check_ez(int btn_pin, int btn_id, int *p_btn_state)
 		int press_count = *p_btn_state;
 		*p_btn_state = 0;
 		
-		if (press_count > BTN_EZ_WAIT_COUNT) {
-			/* pressed >= 3sec */
+		if (press_count >= BTN_EZ_WAIT_COUNT) {
+			/* pressed >= 3s */
 			wd_alarmtimer(0, 0);
 			ez_event_long(btn_id);
-		} else if (press_count > 0 && press_count < BTN_EZ_CANCEL_COUNT) {
-			/* pressed < 500ms */
+		} else if (press_count >= BTN_EZ_CANCEL_COUNT && press_count < BTN_EZ_WAIT_COUNT) {
+			/* pressed >= 1s */
 			wd_alarmtimer(0, 0);
+			ez_action_led_toggle(); // toggle front LED
 			ez_event_short(btn_id);
 		}
 	}
@@ -723,14 +779,6 @@ ez_action_wan_toggle(void)
 }
 
 static void
-ez_action_shutdown(void)
-{
-	logmessage("watchdog", "Perform ez-button %s...", "shutdown");
-
-	sys_stop();
-}
-
-static void
 ez_action_user_script(int script_param)
 {
 	const char *ez_script = "/etc/storage/ez_buttons_script.sh";
@@ -741,14 +789,6 @@ ez_action_user_script(int script_param)
 	logmessage("watchdog", "Execute %s %d", ez_script, script_param);
 
 	doSystem("%s %d", ez_script, script_param);
-}
-
-static void
-ez_action_led_toggle(void)
-{
-	int is_show = (nvram_get_int("led_front_t")) ? 0 : 1;
-
-	show_hide_front_leds(is_show);
 }
 
 void
@@ -822,6 +862,9 @@ ez_event_short(int btn_id)
 		ez_action_change_guest_wifi2();
 		ez_action_change_guest_wifi5();
 		break;
+	case 14: // Router reboot
+		ez_action_reboot();
+		break;
 #if (BOARD_NUM_USB_PORTS > 1)
 	case 21: // Safe removal USB #1
 		ez_action_usb_saferemoval(1);
@@ -892,7 +935,7 @@ ez_event_long(int btn_id)
 		ez_action_wan_reconnect();
 		break;
 	case 7: // Router reboot
-		sys_exit();
+		ez_action_reboot();
 		break;
 	case 8: // Router shutdown
 		ez_action_shutdown();
@@ -919,7 +962,7 @@ ez_event_long(int btn_id)
 	case 15: // Reset settings
 		erase_nvram();
 		erase_storage();
-		sys_exit();
+		ez_action_reboot();
 		break;
 #if (BOARD_NUM_USB_PORTS > 1)
 	case 21: // Safe removal USB #1
@@ -963,6 +1006,25 @@ static void httpd_process_check(void)
 		start_httpd(0);
 	}
 }
+
+/* Sometimes, ralinkiappd crashed, try to re-run it */
+#if BOARD_HAS_2G_RADIO
+static void iappd_process_check(void)
+{
+	int iappd_is_run = pids("ralinkiappd");
+
+	if (!iappd_is_run)
+		iappd_missing++;
+	else
+		iappd_missing = 0;
+	
+	if (iappd_missing > 1) {
+		iappd_missing = 0;
+		logmessage("watchdog", "ralinkiappd is missing, start again!");
+		start_iappd();
+	}
+}
+#endif
 
 /* Sometimes, dnsmasq crashed, try to re-run it */
 static void
@@ -1076,6 +1138,10 @@ watchdog_on_timer(void)
 
 	/* http server check */
 	httpd_process_check();
+
+#if BOARD_HAS_2G_RADIO
+	iappd_process_check();
+#endif
 
 	/* DNS/DHCP server check */
 	if (!is_ap_mode)

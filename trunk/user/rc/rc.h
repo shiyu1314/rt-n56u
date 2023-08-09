@@ -34,7 +34,7 @@
 #include <bin_sem_asus.h>
 
 /* do not set current year, it used for ntp done check! */
-#define SYS_START_YEAR			2015
+#define SYS_START_YEAR			2021
 
 #define DNS_RESOLV_CONF			"/etc/resolv.conf"
 #define DNS_SERVERS_FILE		"/tmp/dnsmasq.servers"
@@ -105,36 +105,56 @@
 // for log message title
 #define LOGNAME				BOARD_NAME
 
-#if BOARD_RAM_SIZE > 128
- #define KERNEL_NET_CORE_RMEM		1310720
- #define KERNEL_NET_CORE_WMEM		1310720
- #define KERNEL_MIN_FREE_KBYTES		12288
- #define DNS_RELAY_CACHE_MAX		1536
- #define LOG_ROTATE_SIZE_MAX		1024
+#if BOARD_RAM_SIZE > 256
+ #define KERNEL_NET_CORE_RMEM		8388608
+ #define KERNEL_NET_CORE_WMEM		8388608
+ #define KERNEL_NET_SOMAXCONN		16384
+ #define KERNEL_NET_TCP_MAXORPHANS	6144
+ #define KERNEL_NET_TCP_FINTIMEOUT	5
+ #define KERNEL_MIN_FREE_KBYTES		2896
+ #define KERNEL_OVERCOMMIT_RATIO	70
+ #define DNS_RELAY_CACHE_MAX		896
+ #define LOG_ROTATE_SIZE_MAX		896
+#elif BOARD_RAM_SIZE > 128
+ #define KERNEL_NET_CORE_RMEM		4194304
+ #define KERNEL_NET_CORE_WMEM		4194304
+ #define KERNEL_NET_SOMAXCONN		8192
+ #define KERNEL_NET_TCP_MAXORPHANS	3072
+ #define KERNEL_NET_TCP_FINTIMEOUT	4
+ #define KERNEL_MIN_FREE_KBYTES		2048
+ #define KERNEL_OVERCOMMIT_RATIO	60
+ #define DNS_RELAY_CACHE_MAX		768
+ #define LOG_ROTATE_SIZE_MAX		768
 #elif BOARD_RAM_SIZE > 64
- #define KERNEL_NET_CORE_RMEM		983040
- #define KERNEL_NET_CORE_WMEM		983040
- #define KERNEL_MIN_FREE_KBYTES		8192
- #define DNS_RELAY_CACHE_MAX		1024
+ #define KERNEL_NET_CORE_RMEM		2097152
+ #define KERNEL_NET_CORE_WMEM		2097152
+ #define KERNEL_NET_SOMAXCONN		4096
+ #define KERNEL_NET_TCP_MAXORPHANS	1536
+ #define KERNEL_NET_TCP_FINTIMEOUT	3
+ #define KERNEL_MIN_FREE_KBYTES		1448
+ #define KERNEL_OVERCOMMIT_RATIO	50
+ #define DNS_RELAY_CACHE_MAX		512
  #define LOG_ROTATE_SIZE_MAX		512
 #elif BOARD_RAM_SIZE > 32
- #define KERNEL_NET_CORE_RMEM		655360
- #define KERNEL_NET_CORE_WMEM		655360
- #define KERNEL_MIN_FREE_KBYTES		4096
- #define DNS_RELAY_CACHE_MAX		512
- #define LOG_ROTATE_SIZE_MAX		256
-#elif BOARD_RAM_SIZE > 16
- #define KERNEL_NET_CORE_RMEM		327680
- #define KERNEL_NET_CORE_WMEM		327680
- #define KERNEL_MIN_FREE_KBYTES		2048
- #define DNS_RELAY_CACHE_MAX		256
- #define LOG_ROTATE_SIZE_MAX		128
-#else
- #define KERNEL_NET_CORE_RMEM		163840
- #define KERNEL_NET_CORE_WMEM		163840
+ #define KERNEL_NET_CORE_RMEM		1048576
+ #define KERNEL_NET_CORE_WMEM		1048576
+ #define KERNEL_NET_SOMAXCONN		2048
+ #define KERNEL_NET_TCP_MAXORPHANS	768
+ #define KERNEL_NET_TCP_FINTIMEOUT	2
  #define KERNEL_MIN_FREE_KBYTES		1024
- #define DNS_RELAY_CACHE_MAX		160
- #define LOG_ROTATE_SIZE_MAX		80
+ #define KERNEL_OVERCOMMIT_RATIO	40
+ #define DNS_RELAY_CACHE_MAX		256
+ #define LOG_ROTATE_SIZE_MAX		256
+#else
+ #define KERNEL_NET_CORE_RMEM		524288
+ #define KERNEL_NET_CORE_WMEM		524288
+ #define KERNEL_NET_SOMAXCONN		1024
+ #define KERNEL_NET_TCP_MAXORPHANS	384
+ #define KERNEL_NET_TCP_FINTIMEOUT	1
+ #define KERNEL_MIN_FREE_KBYTES		724
+ #define KERNEL_OVERCOMMIT_RATIO	30
+ #define DNS_RELAY_CACHE_MAX		128
+ #define LOG_ROTATE_SIZE_MAX		128
 #endif
 
 //////////////////////////////////////////////////////////
@@ -534,9 +554,6 @@ void restart_ttyd(void);
 void stop_ss(void);
 void start_ss(void);
 void restart_ss(void);
-void stop_ss_tunnel(void);
-void start_ss_tunnel(void);
-void restart_ss_tunnel(void);
 void update_chnroute(void);
 void update_gfwlist(void);
 #endif
@@ -548,10 +565,10 @@ void restart_vlmcsd(void);
 #if defined(APP_NAPT66)
 void start_napt66(void);
 #endif
-#if defined(APP_DNSFORWARDER)
-void stop_dnsforwarder(void);
-void start_dnsforwarder(void);
-void restart_dnsforwarder(void);
+#if BOARD_HAS_2G_RADIO
+void stop_iappd(void);
+void start_iappd(void);
+void restart_iappd(void);
 #endif
 
 /* services_ex.c */

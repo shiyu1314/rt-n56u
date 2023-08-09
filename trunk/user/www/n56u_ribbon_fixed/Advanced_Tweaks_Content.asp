@@ -272,6 +272,7 @@ function change_led_all(){
                                                     <option value="6" ><#TweaksWPSItem20#></option>
                                                     <option value="7" ><#TweaksWPSItem21#></option>
                                                     <option value="8" ><#TweaksWPSItem22#></option>
+                                                    <option value="14"><#TweaksWPSItem30#></option>
                                                     <option value="9" ><#TweaksWPSItem32#> (arg: 1)</option>
                                                 </select>
                                             </td>
@@ -326,6 +327,7 @@ function change_led_all(){
                                                     <option value="6" ><#TweaksWPSItem20#></option>
                                                     <option value="7" ><#TweaksWPSItem21#></option>
                                                     <option value="8" ><#TweaksWPSItem22#></option>
+                                                    <option value="14"><#TweaksWPSItem30#></option>
                                                     <option value="9" ><#TweaksWPSItem32#> (arg: 3)</option>
                                                 </select>
                                             </td>
@@ -380,6 +382,7 @@ function change_led_all(){
                                                     <option value="6" ><#TweaksWPSItem20#></option>
                                                     <option value="7" ><#TweaksWPSItem21#></option>
                                                     <option value="8" ><#TweaksWPSItem22#></option>
+                                                    <option value="14"><#TweaksWPSItem30#></option>
                                                     <option value="9" ><#TweaksWPSItem32#> (arg: 5)</option>
                                                 </select>
                                             </td>

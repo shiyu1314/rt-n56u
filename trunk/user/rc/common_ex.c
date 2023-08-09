@@ -388,16 +388,13 @@ set_pagecache_reclaim(void)
 	switch (pagecache_reclaim)
 	{
 	case 1:
-		pagecache_ratio = 30;
+		pagecache_ratio = 70;
 		break;
 	case 2:
 		pagecache_ratio = 50;
 		break;
 	case 3:
-		pagecache_ratio = 70;
-		break;
-	case 4:
-		pagecache_ratio = 85;
+		pagecache_ratio = 30;
 		break;
 	}
 

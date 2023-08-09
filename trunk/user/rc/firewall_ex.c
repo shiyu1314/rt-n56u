@@ -2121,7 +2121,16 @@ start_firewall_ex(void)
 	const char *opt_iptables_script = "/opt/bin/update_iptables.sh";
 	const char *int_iptables_script = SCRIPT_POST_FIREWALL;
 #if defined (APP_SHADOWSOCKS)
-	const char *shadowsocks_iptables_script = "/tmp/shadowsocks_iptables.save";
+	const char *shadowsocks_iptables_script = "/tmp/SSP/rulesstart";
+
+	if (check_if_file_exist(shadowsocks_iptables_script)) {
+		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
+		doSystem("echo %s > %s", "0", "/tmp/SSP/startrules");
+	} else if (nvram_match("ss_enable", "1")) {
+		doSystem("echo %s > %s", "3", "/tmp/SSP/errorcount");
+		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
+		doSystem("echo %s > %s", "1", "/tmp/SSP/startrules");
+	}
 #endif
 
 	unit = 0;
@@ -2193,10 +2202,6 @@ start_firewall_ex(void)
 #endif
 #endif
 
-#if defined (APP_SHADOWSOCKS)
-	if (check_if_file_exist(shadowsocks_iptables_script))
-		doSystem("sh %s", shadowsocks_iptables_script);
-#endif
 	if (check_if_file_exist(int_iptables_script))
 		doSystem("%s", int_iptables_script);
 
@@ -2205,6 +2210,18 @@ start_firewall_ex(void)
 
 	/* enable IPv4 forward */
 	set_ipv4_forward(1);
+
+#if BOARD_HAS_2G_RADIO
+	restart_iappd();
+#endif
+
+#if defined (APP_SHADOWSOCKS)
+	if (check_if_file_exist(shadowsocks_iptables_script)) {
+		doSystem("sh %s", shadowsocks_iptables_script);
+	} else if (nvram_match("ss_enable", "1")) {
+		doSystem("echo %s > %s", "1", "/tmp/SSP/errorcount");
+	}
+#endif
 
 	/* try unload unused iptables modules */
 	module_smart_unload("xt_webstr", 0);

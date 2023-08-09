@@ -49,7 +49,7 @@ start_syslogd(void)
 		log_rot,			/* max size before rotation */
 		"-b0",				/* purge on rotate */
 		"-S",				/* smaller output */
-		"-D",				/* drop duplicates */
+		//"-D",				/* drop duplicates */
 		"-O", "/tmp/syslog.log",	/* syslog file */
 		NULL,				/* -L */
 		NULL, NULL,			/* -R host:port */
@@ -106,11 +106,19 @@ stop_crond(void)
 {
 	char* svcs[] = { "crond", NULL };
 	kill_services(svcs, 3, 1);
+
+	sleep(1);
+
+	if (pids("crond"))
+	doSystem("killall %s %s %s", "-q", "-9", "crond");
 }
 
 int
 start_crond(void)
 {
+	if (pids("crond"))
+	doSystem("killall %s %s %s", "-q", "-9", "crond");
+
 	char *crond_argv[] = {
 		"/usr/sbin/crond",
 		NULL,			/* -d8 */
@@ -322,21 +330,6 @@ void restart_ss(void){
 	start_ss();
 }
 
-void stop_ss_tunnel(void){
-	eval("/usr/bin/ss-tunnel.sh","stop");
-}
-
-void start_ss_tunnel(void){
-	int ss_tunnel_mode = nvram_get_int("ss-tunnel_enable");
-	if ( ss_tunnel_mode == 1)
-		eval("/usr/bin/ss-tunnel.sh","start");
-}
-
-void restart_ss_tunnel(void){
-	stop_ss_tunnel();
-	start_ss_tunnel();
-}
-
 void update_chnroute(void){
 	eval("/bin/sh","-c","/usr/bin/update_chnroute.sh force &");
 }
@@ -364,23 +357,6 @@ void restart_vlmcsd(void){
 }
 #endif
 
-#if defined(APP_DNSFORWARDER)
-void stop_dnsforwarder(void){
-	eval("/usr/bin/dns-forwarder.sh","stop");
-}
-
-void start_dnsforwarder(void){
-	int dnsforwarder_mode = nvram_get_int("dns_forwarder_enable");
-	if (dnsforwarder_mode == 1)
-		eval("usr/bin/dns-forwarder.sh","start");
-}
-
-void restart_dnsforwarder(void){
-	stop_dnsforwarder();
-	start_dnsforwarder();
-}
-#endif
-
 #if defined(APP_NAPT66)
 void start_napt66(void){
 	int napt66_mode = nvram_get_int("napt66_enable");
@@ -395,6 +371,19 @@ void start_napt66(void){
 			logmessage("napt66","Invalid wan6 ifname!");
 		}
 	}
+}
+#endif
+
+#if BOARD_HAS_2G_RADIO
+void stop_iappd(void){
+	eval("/usr/bin/iappd.sh","stop");
+}
+void start_iappd(void){
+	eval("/usr/bin/iappd.sh","start");
+}
+void restart_iappd(void){
+	stop_iappd();
+	start_iappd();
 }
 #endif
 
@@ -580,6 +569,9 @@ start_services_once(int is_ap_mode)
 #if defined(APP_SSHD)
 	start_sshd();
 #endif
+#if defined(APP_TTYD)
+	start_ttyd();
+#endif
 	start_vpn_server();
 	start_watchdog();
 	start_infosvr();
@@ -598,30 +590,25 @@ start_services_once(int is_ap_mode)
 		start_xupnpd(IFNAME_BR);
 #endif
 	}
-
-#if defined(APP_SCUT)
-	start_scutclient();
-#endif
-#if defined(APP_DNSFORWARDER)
-	start_dnsforwarder();
-#endif
-#if defined(APP_SHADOWSOCKS)
-	start_ss();
-	start_ss_tunnel();
-#endif
-#if defined(APP_TTYD)
-	start_ttyd();
-#endif
-#if defined(APP_VLMCSD)
-	start_vlmcsd();
-#endif
 	start_lltd();
 	start_watchdog_cpu();
 	start_crond();
 	start_networkmap(1);
 	start_rstats();
+#if BOARD_HAS_2G_RADIO
+	start_iappd();
+#endif
+#if defined(APP_SCUT)
+	start_scutclient();
+#endif
 #if defined(APP_MENTOHUST)
 	start_mentohust();
+#endif
+#if defined(APP_VLMCSD)
+	start_vlmcsd();
+#endif
+#if defined(APP_SHADOWSOCKS)
+	start_ss();
 #endif
 	return 0;
 }
@@ -629,10 +616,25 @@ start_services_once(int is_ap_mode)
 void
 stop_services(int stopall)
 {
+#if defined(APP_SHADOWSOCKS)
+	stop_ss();
+#endif
+#if defined(APP_VLMCSD)
+	stop_vlmcsd();
+#endif
+#if defined(APP_MENTOHUST)
+	stop_mentohust();
+#endif
+#if defined(APP_SCUT)
+	stop_scutclient();
+#endif
 	if (stopall) {
 		stop_telnetd();
 #if defined (APP_SSHD)
 		stop_sshd();
+#endif
+#if defined(APP_TTYD)
+		stop_ttyd();
 #endif
 		stop_httpd();
 		stop_vpn_server();
@@ -645,15 +647,6 @@ stop_services(int stopall)
 #if defined (SRV_U2EC)
 	stop_u2ec();
 #endif
-#endif
-#if defined(APP_SCUT)
-	stop_scutclient();
-#endif
-#if defined(APP_MENTOHUST)
-	stop_mentohust();
-#endif
-#if defined(APP_TTYD)
-	stop_ttyd();
 #endif
 	stop_networkmap();
 	stop_lltd();
@@ -672,6 +665,9 @@ stop_services_lan_wan(void)
 	stop_detect_link();
 #if defined (APP_SMBD) || defined (APP_NMBD)
 	stop_nmbd();
+#endif
+#if BOARD_HAS_2G_RADIO
+	stop_iappd();
 #endif
 }
 

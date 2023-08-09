@@ -251,7 +251,7 @@ function show_banner(L3){
 		bc += '    <td style="text-align: right"><button type="button" id="clearlog_btn" class="btn btn-info" style="min-width: 170px;" onclick="clearlog();"><#CTL_clear#></button></td>\n';
 		bc += '  </tr>\n';
 		bc += '</table>\n';
-		bc += '<span><textarea rows="28" wrap="off" class="span12" readonly="readonly" id="log_area"></textarea></span>\n';
+		bc += '<span><textarea style="resize:none;" rows="28" wrap="off" class="span12" readonly="readonly" id="log_area"></textarea></span>\n';
 		bc += '</div>\n';
 	}
 
@@ -358,8 +358,8 @@ function show_banner(L3){
 	bc += '    <td><a href="/Advanced_FirmwareUpgrade_Content.asp"><span id="firmver" class="time"></span></a></td>\n';
 	bc += '  </tr>\n';
 	bc += '  <tr>\n';
-	bc += '    <td><button type="button" id="commit_btn" class="btn btn-mini" style="width: 114px; height: 21px; outline:0; '+enabledBtnCommit+'" onclick="commit();"><i class="icon icon-fire"></i>&nbsp;<#CTL_Commit#></button></td>\n';
-	bc += '    <td><button type="button" id="logout_btn" class="btn btn-mini" style="height: 21px; outline:0;" title="<#t1Logout#>" onclick="logout();"><i class="icon icon-user"></i></button> <button type="button" id="reboto_btn" class="btn btn-mini" style="height: 21px; outline:0;" title="<#BTN_REBOOT#>" onclick="reboot();"><i class="icon icon-repeat"></i></button> <button type="button" id="shutdown_btn" class="btn btn-mini" style="height: 21px; outline:0;" title="<#BTN_SHUTDOWN#>" onclick="shutdown();"><i class="icon icon-off"></i></button></td>\n';
+	bc += '    <td><button type="button" id="shutdown_btn" class="btn btn-mini" style="width: 55px; height: 21px; outline:0;" title="<#BTN_SHUTDOWN#>" onclick="shutdown();"><i class="icon icon-off"></i></button> <button type="button" id="commit_btn" class="btn btn-mini" style="width: 55px; height: 21px; outline:0; '+enabledBtnCommit+'" onclick="commit();"><i class="icon icon-fire"></i>&nbsp;<#CTL_Commit#></button></td>\n';
+	bc += '    <td><button type="button" id="reboto_btn" class="btn btn-mini" style="width: 55px; height: 21px; outline:0;" title="<#BTN_REBOOT#>" onclick="reboot();"><i class="icon icon-repeat"></i></button> <button type="button" id="logout_btn" class="btn btn-mini" style="width: 55px; height: 21px; outline:0;" title="<#t1Logout#>" onclick="logout();"><i class="icon icon-user"></i></button></td>\n';
 	bc += '  </tr>\n';
 	bc += '</table>\n';
 	bc += '</div>\n';
@@ -377,8 +377,8 @@ function show_banner(L3){
 	show_top_status();
 }
 
-var tabtitle = new Array(15);
-var tablink = new Array(15);
+var tabtitle = new Array();
+var tablink = new Array();
 tabtitle[0] = new Array("", "<#menu5_1_1#>", "<#menu5_1_2#>", "<#menu5_1_3#>", "<#menu5_1_4#>", "<#menu5_1_5#>", "<#menu5_1_6#>");
 tabtitle[1] = new Array("", "<#menu5_1_1#>", "<#menu5_1_2#>", "<#menu5_1_3#>", "<#menu5_1_4#>", "<#menu5_1_5#>", "<#menu5_1_6#>");
 tabtitle[2] = new Array("", "<#menu5_2_1#>", "<#menu5_2_2#>", "<#menu5_2_3#>", "<#menu5_2_4#>", "<#menu5_2_5#>", "<#menu5_2_6#>");
@@ -389,21 +389,17 @@ tabtitle[6] = new Array("", "<#menu5_6_2#>", "<#menu5_6_5#>", "<#menu5_6_1#>", "
 tabtitle[7] = new Array("", "<#menu5_10_1#>", "<#menu5_10_2#>", "<#menu5_10_3#>");
 tabtitle[8] = new Array("", "<#menu5_11#>", "<#menu5_12#>", "WAN", "", "", "", "", "", "", "");
 tabtitle[9] = new Array("", "<#menu5_7_2#>", "<#menu5_7_3#>", "<#menu5_7_5#>", "<#menu5_7_6#>", "<#menu5_7_8#>");
-if (found_app_scutclient()){
-	tabtitle[10] = new Array("", "<#menu5_1_1#>","<#menu5_13_log#>");
-}
-if (found_app_dnsforwarder()){
-	tabtitle[11] = new Array("", "<#menu5_1_1#>");
-}
 if (found_app_shadowsocks()){
-	tabtitle[12] = new Array("", "<#menu5_1_1#>","<#menu5_16_20#>");
+	tabtitle[10] = new Array("", "<#menu5_16_1#>", "<#menu5_16_2#>", "<#menu5_16_3#>");
+}
+if (found_app_scutclient()){
+	tabtitle[11] = new Array("", "<#menu5_1_1#>","<#menu5_13_log#>");
 }
 if (found_app_mentohust()){
-	tabtitle[13] = new Array("", "<#menu5_1_1#>","<#menu5_13_log#>");
+	tabtitle[12] = new Array("", "<#menu5_1_1#>","<#menu5_13_log#>");
 }
 
 //Level 3 Tab title
-
 tablink[0] = new Array("", "Advanced_Wireless2g_Content.asp", "Advanced_WGuest2g_Content.asp", "Advanced_WMode2g_Content.asp", "Advanced_ACL2g_Content.asp", "Advanced_WSecurity2g_Content.asp", "Advanced_WAdvanced2g_Content.asp");
 tablink[1] = new Array("", "Advanced_Wireless_Content.asp", "Advanced_WGuest_Content.asp", "Advanced_WMode_Content.asp", "Advanced_ACL_Content.asp", "Advanced_WSecurity_Content.asp", "Advanced_WAdvanced_Content.asp");
 tablink[2] = new Array("", "Advanced_LAN_Content.asp", "Advanced_DHCP_Content.asp", "Advanced_GWStaticRoute_Content.asp", "Advanced_IPTV_Content.asp", "Advanced_Switch_Content.asp", "Advanced_WOL_Content.asp");
@@ -414,36 +410,29 @@ tablink[6] = new Array("", "Advanced_System_Content.asp", "Advanced_Services_Con
 tablink[7] = new Array("", "Advanced_Tweaks_Content.asp", "Advanced_Scripts_Content.asp", "Advanced_InetDetect_Content.asp");
 tablink[8] = new Array("", "Main_WStatus2g_Content.asp", "Main_WStatus_Content.asp", "", "", "", "", "", "", "", "");
 tablink[9] = new Array("", "Main_LogStatus_Content.asp", "Main_DHCPStatus_Content.asp", "Main_IPTStatus_Content.asp", "Main_RouteStatus_Content.asp", "Main_CTStatus_Content.asp");
+if (found_app_shadowsocks()){
+	shadowsocks_array = new Array("", "Shadowsocks.asp", "Shadowsocks_nodes.asp", "Shadowsocks_log.asp");
+	tablink[10] = (shadowsocks_array);
+}
 if (found_app_scutclient()){
 	scutclient_array = new Array("", "scutclient.asp", "scutclient_log.asp");
-	tablink[10] = (scutclient_array);
-}
-if (found_app_dnsforwarder()){
-	dns_forwarder_array = new Array("", "dns-forwarder.asp");
-	tablink[11] = (dns_forwarder_array);
-}
-if (found_app_shadowsocks()){
-	shadowsocks_array = new Array("","Shadowsocks.asp","Shadowsocks_log.asp");
-	tablink[12] = (shadowsocks_array);
+	tablink[11] = (scutclient_array);
 }
 if (found_app_mentohust()){
 	mentohust_array = new Array("","mentohust.asp","mentohust_log.asp");
-	tablink[13] = (mentohust_array);
+	tablink[12] = (mentohust_array);
 }
 
 //Level 2 Menu
-menuL2_title = new Array(15)
+var menuL2_title = new Array();
+var menuL2_link = new Array();
 menuL2_title = new Array("", "<#menu5_11#>", "<#menu5_12#>", "<#menu5_2#>", "<#menu5_3#>", "<#menu5_5#>", "<#menu5_4#>", "<#menu5_6#>", "<#menu5_10#>", "<#menu5_9#>", "<#menu5_7#>");
-if (found_app_scutclient()){
-	menuL2_title.push("<#menu5_13#>");
-} else menuL2_title.push("");
-
-if (found_app_dnsforwarder()){
-	menuL2_title.push("<#menu5_15#>");
-} else menuL2_title.push("");
-
 if (found_app_shadowsocks()){
 	menuL2_title.push("<#menu5_16#>");
+} else menuL2_title.push("");
+
+if (found_app_scutclient()){
+	menuL2_title.push("<#menu5_13#>");
 } else menuL2_title.push("");
 
 if (found_app_mentohust()){
@@ -451,17 +440,13 @@ if (found_app_mentohust()){
 } else menuL2_title.push("");
 
 
-menuL2_link  = new Array("", tablink[0][1], tablink[1][1], tablink[2][1], tablink[3][1], tablink[4][1], tablink[5][1], tablink[6][1], tablink[7][1], support_2g_radio() ? tablink[8][1] : "Main_EStatus_Content.asp", tablink[9][1]);
-if (found_app_scutclient()){
-	menuL2_link.push(scutclient_array[1]);
-} else menuL2_link.push("");
-
-if (found_app_dnsforwarder()){
-	menuL2_link.push(dns_forwarder_array[1]);
-} else menuL2_link.push("");
-
+menuL2_link = new Array("", tablink[0][1], tablink[1][1], tablink[2][1], tablink[3][1], tablink[4][1], tablink[5][1], tablink[6][1], tablink[7][1], support_2g_radio() ? tablink[8][1] : "Main_EStatus_Content.asp", tablink[9][1]);
 if (found_app_shadowsocks()){
 	menuL2_link.push(shadowsocks_array[1]);
+} else menuL2_link.push("");
+
+if (found_app_scutclient()){
+	menuL2_link.push(scutclient_array[1]);
 } else menuL2_link.push("");
 
 if (found_app_mentohust()){

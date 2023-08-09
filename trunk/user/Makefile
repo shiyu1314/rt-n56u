@@ -27,6 +27,8 @@ SOFTETHERVPN_ENABLE=n
 SHADOWSOCKS_ENABLE=n
 FRP_ENABLE=n
 TROJAN_ENABLE=n
+SMARTDNS_ENABLE=n
+IAPPD_ENABLE=n
 
 ifneq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSH),y)
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_DROPBEAR),y)
@@ -90,6 +92,20 @@ ifneq ($(filter y,$(CONFIG_FIRMWARE_INCLUDE_WING) $(CONFIG_FIRMWARE_INCLUDE_TROJ
 TROJAN_ENABLE=y
 endif
 
+ifneq ($(filter y,$(CONFIG_FIRMWARE_INCLUDE_SMARTDNS)),)
+SMARTDNS_ENABLE=y
+endif
+
+ifdef CONFIG_RT_FIRST_IF_RANGE_2GHZ
+IAPPD_ENABLE=y
+endif
+ifdef CONFIG_RT_SECOND_IF_RANGE_2GHZ
+IAPPD_ENABLE=y
+endif
+ifdef CONFIG_DBDC_MODE
+IAPPD_ENABLE=y
+endif
+
 dir_y =
 dir_n =
 dir_  =
@@ -124,6 +140,7 @@ dir_y						+= udpxy
 dir_y						+= utils
 dir_y						+= lanauth
 dir_y						+= 802.1x
+dir_$(IAPPD_ENABLE)						+= ralinkiappd
 dir_y						+= wpa_supplicant
 dir_y						+= pppd
 dir_y						+= pppoe
@@ -131,7 +148,6 @@ dir_y						+= xl2tpd
 dir_$(CONFIG_FIRMWARE_INCLUDE_RPL2TP)		+= rp-l2tp
 dir_y						+= lldt
 dir_y						+= scripts
-dir_$(CONFIG_FIRMWARE_INCLUDE_SMARTDNS)	+= smartdns
 dir_$(OPENSSH_ENABLED)				+= openssh
 dir_$(DROPBEAR_ENABLED)				+= dropbear
 dir_$(CONFIG_FIRMWARE_INCLUDE_HTOP)		+= htop
@@ -160,7 +176,8 @@ dir_$(FRP_ENABLE)				+= frp
 dir_$(SOFTETHERVPN_ENABLE)			+= softethervpn
 dir_$(CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT)         += scutclient
 dir_$(CONFIG_FIRMWARE_INCLUDE_VLMCSD)			+= vlmcsd
-dir_$(CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER)		+= dns-forwarder
+dir_$(SMARTDNS_ENABLE)		+= smartdns
+dir_$(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS)		+= dns-forwarder
 dir_$(SHADOWSOCKS_ENABLE)				+= shadowsocks
 dir_$(CONFIG_FIRMWARE_INCLUDE_LRZSZ)			+= lrzsz
 dir_$(CONFIG_FIRMWARE_INCLUDE_GDUT_DRCOM)		+= gdut-drcom

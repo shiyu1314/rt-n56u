@@ -168,8 +168,8 @@ struct nvram_pair router_defaults[] = {
 	{ "wl_channel", "0" },			/* Channel number */
 	{ "wl_bcn", "100" },			/* Beacon interval */
 	{ "wl_dtim", "1" },			/* DTIM period */
-	{ "wl_rts", "2347" },			/* RTS threshold */
-	{ "wl_frag", "2346" },			/* Fragmentation threshold */
+	{ "wl_rts", DEF_WLAN_RTS },			/* RTS threshold */
+	{ "wl_frag", DEF_WLAN_MSS },			/* Fragmentation threshold */
 	{ "wl_ap_isolate", "0" },		/* AP isolate mode */
 	{ "wl_closed", "0" },			/* Closed (hidden) network */
 	{ "wl_macmode", "disabled" },		/* "allow" only, "deny" only, or "disabled"(allow all) */
@@ -276,8 +276,8 @@ struct nvram_pair router_defaults[] = {
 	{ "rt_bcn", "100" },
 	{ "rt_dtim", "1" },
 	{ "rt_gmode_protection", "auto" },
-	{ "rt_rts", "2347" },
-	{ "rt_frag", "2346" },
+	{ "rt_rts", DEF_WLAN_RTS },
+	{ "rt_frag", DEF_WLAN_MSS },
 	{ "rt_ap_isolate", "0" },
 	{ "rt_closed", "0" },
 	{ "rt_macmode", "disabled" },
@@ -367,14 +367,18 @@ struct nvram_pair router_defaults[] = {
 #endif
 
 	// USB related
+	{ "samba_r_size", DEF_WLAN_MSS },
+	{ "samba_m_xmit", "65535" },
+	{ "samba_rmem_buf", "65535" },
+	{ "samba_wmem_buf", "65535" },
 	{ "acc_num", "0" },
 	{ "enable_ftp", "0" },
 	{ "enable_samba", "0" },
-	{ "st_samba_fp", "0" },
-	{ "st_samba_mode", "1" },
+	{ "st_samba_fp", "1" },
+	{ "st_samba_mode", "4" },
 	{ "st_samba_lmb", "1" },
 	{ "st_samba_workgroup", DEF_SMB_WORKGROUP },
-	{ "st_ftp_mode", "1" },
+	{ "st_ftp_mode", "4" },
 	{ "st_ftp_log", "0" },
 	{ "st_ftp_pmin", "50000" },
 	{ "st_ftp_pmax", "50100" },
@@ -536,7 +540,9 @@ struct nvram_pair router_defaults[] = {
 	/* ttyd related */
 	{ "ttyd_enable", "0" },
 	{ "ttyd_port", "7681" },
+#endif
 
+#if defined(APP_NAPT66)
 	/* NAPT66 */
 	{ "napt66_enable", "0" },
 #endif
@@ -546,42 +552,32 @@ struct nvram_pair router_defaults[] = {
 	{ "vlmcsd_enable", "0" },
 #endif
 
-#if defined(APP_DNSFORWARDER)
-	/* dns-forwarder */
-	{ "dns_forwarder_enable", "0" },
-	{ "dns_forwarder_port", "5353" },
-	{ "dns_forwarder_bind", "0.0.0.0" },
-	{ "dns_forwarder_server", "8.8.4.4:53" },
-#endif
-
 #if defined(APP_SHADOWSOCKS)
 	/* shadowsocks */
-	{ "ss_type", "0" }, //0=ss, 1=ssr
 	{ "ss_enable", "0" },
-	{ "ss_mode", "1" }, 	//0=全局代理,1=绕过大陆,2=gfwlist
-	{ "ss_server", "127.0.0.1" },
-	{ "ss_server_port", "8989" },
-	{ "ss_key", "Secret" },
-	{ "ss_method", "rc4-md5" },
+	{ "ss_type", "9" }, 	//0=ss 1=ssr 2=trojan 3=vmess 9=auto
+	{ "ss_mode", "1" }, 	//0=global 1=chnroute 2=gfwlist
+	{ "diversion_rate", "2" },
 	{ "ss_udp", "0" },
 	{ "ss_local_port", "1080" },
 	{ "ss_mtu", "1492" },
-	{ "ss_router_proxy", "1" },
-	{ "ss_lower_port_only", "1" },		//1:22-1023;2:53,80,443
-	{ "ss_timeout", "60"},
-	{ "ss_protocol", "origin"},
-	{ "ss_proto_param", ""},
-	{ "ss_obfs", "plain"},
-	{ "ss_obfs_param", ""},
+	{ "ss_timeout", "60" },
 
-	{ "ss-tunnel_enable", "0" },
-	{ "ss-tunnel_local_port", "5301" },
-	{ "ss-tunnel_remote", "8.8.4.4:53" },
-	{ "ss-tunnel_mtu", "1492" },
-
-	{ "ss_watchcat", "1" },
+	{ "ss_watchcat_autorec", "0" },
 	{ "ss_update_chnroute", "0" },
+	{ "chnroute_url", "" },
+	{ "ss_custom_chnroute", "" },
 	{ "ss_update_gfwlist", "0" },
+	{ "gfwlist_url", "" },
+	{ "ss_custom_gfwlist", "" },
+
+	{ "ss_dns_local_port", "60" },
+	{ "ss_dns_remote_server", "8.8.4.4:53" },
+	{ "dns_forwarder_enable", "0" },
+	{ "ss-tunnel_enable", "0" },
+	{ "ss-tunnel_mtu", "1492" },
+	
+	{ "ss_server_num_x", "0" },
 #endif
 
 	/* DHCP server parameters */
@@ -789,13 +785,7 @@ struct nvram_pair router_defaults[] = {
 	{ "fw_mac_drop", "0" },
 	{ "nf_nat_type", "2" },
 	{ "nf_nat_loop", "1" },
-#if (BOARD_RAM_SIZE > 128)
-	{ "nf_max_conn", "32768" },
-#elif (BOARD_RAM_SIZE > 32)
 	{ "nf_max_conn", "16384" },
-#else
-	{ "nf_max_conn", "8192" },
-#endif
 	{ "nf_alg_ftp0", "21" },
 	{ "nf_alg_ftp1", "" },
 	{ "nf_alg_pptp", "0" },
@@ -922,6 +912,17 @@ struct nvram_pair tables_defaults[] = {
 
 	{ "wl_wdslist_x", "" },
 	{ "rt_wdslist_x", "" },
+
+	{ "ss_server_type_x", "" },
+	{ "ss_server_addr_x", "" },
+	{ "ss_server_port_x", "" },
+	{ "ss_server_key_x", "" },
+	{ "ss_server_sni_x", "" },
+	{ "ss_method_x", "" },
+	{ "ss_protocol_x", "" },
+	{ "ss_proto_param_x", "" },
+	{ "ss_obfs_x", "" },
+	{ "ss_obfs_param_x", "" },
 
 	{ 0, 0 }
 };

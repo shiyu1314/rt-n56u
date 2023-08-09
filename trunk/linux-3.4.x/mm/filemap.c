@@ -51,21 +51,19 @@
 int pagecache_ratio __read_mostly = 100;
 static unsigned long pagecache_limit = 0;
 
-/* Call reclaim after exceeding the limit by this threshold */
-#define PAGECACHE_RECLAIM_THRESHOLD 1024 /* 4MB */
-
 static void setup_pagecache_limit(void)
 {
 	if (pagecache_ratio > 100)
 		pagecache_ratio = 100;
 	else
-	if (pagecache_ratio < 5)
-		pagecache_ratio = 5;
+	if (pagecache_ratio < 1)
+		pagecache_ratio = 1;
 
 	if (pagecache_ratio == 100)
 		pagecache_limit = 0;
 	else
-		pagecache_limit = (unsigned long)pagecache_ratio * nr_free_pagecache_pages() / 100;
+		pagecache_limit = (unsigned long)pagecache_ratio *
+			(nr_free_pagecache_pages() / 2) / 100;
 }
 
 int pagecache_ratio_sysctl_handler(ctl_table *table, int write,
@@ -94,8 +92,10 @@ unsigned long check_pagecache_overlimit(void)
 	 * not reclaim mapped pages.  Unmapped pagecache pages
 	 * is what we really want to target */
 
-	if (unlikely(current_pagecache > current_pagecache_limit))
+	/* Call reclaim after exceeding the limit by this threshold */
+	if (unlikely(current_pagecache > (current_pagecache_limit * 2)))
 		return (current_pagecache - current_pagecache_limit);
+	/* Don't call reclaim for each page */
 
 	return 0;
 }
@@ -103,9 +103,9 @@ unsigned long check_pagecache_overlimit(void)
 static inline void balance_pagecache(void)
 {
 	unsigned long nr_pages = check_pagecache_overlimit();
+	unsigned long pc_limit = pagecache_limit;
 
-	/* Don't call reclaim for each page */
-	if (unlikely(nr_pages > PAGECACHE_RECLAIM_THRESHOLD))
+	if (unlikely(nr_pages > pc_limit))
 		shrink_all_pagecache_memory(nr_pages);
 }
 #endif
@@ -2539,10 +2539,6 @@ generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
 		written += status;
 		*ppos = pos + status;
 	}
-
-#if defined(CONFIG_PAGECACHE_RECLAIM)
-	balance_pagecache();
-#endif
 
 	return written ? written : status;
 }

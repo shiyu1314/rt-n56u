@@ -72,8 +72,6 @@ typedef unsigned __bitwise__ reclaim_mode_t;
 #define RECLAIM_MODE_COMPACTION		((__force reclaim_mode_t)0x10u)
 
 
-extern int check_pagecache_overlimit(void);
-
 struct scan_control {
 	/* Incremented by the number of inactive pages that were scanned */
 	unsigned long nr_scanned;
@@ -101,8 +99,6 @@ struct scan_control {
 
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 	int swappiness;
-	int reclaim_pagecache_only;  /* Set when called from
-					pagecache controller */
 #endif
 	/*
 	 * Intend to reclaim enough continuous memory rather than reclaim
@@ -804,17 +800,6 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 		VM_BUG_ON(PageActive(page));
 		VM_BUG_ON(page_zone(page) != mz->zone);
 
-#if defined(CONFIG_PAGECACHE_RECLAIM)
-		/* Take it easy if we are doing only pagecache pages */
-		if (sc->reclaim_pagecache_only) {
-			/* Check if this is a pagecache page they are not mapped */
-			if (page_mapped(page))
-				goto keep_locked;
-			/* Check if pagecache limit is exceeded */
-			if (!check_pagecache_overlimit())
-				goto keep_locked;
-		}
-#endif
 		sc->nr_scanned++;
 
 		if (unlikely(!page_evictable(page, NULL)))
@@ -911,12 +896,7 @@ static unsigned long shrink_page_list(struct list_head *page_list,
 				goto keep_locked;
 			}
 
-#if defined(CONFIG_PAGECACHE_RECLAIM)
-			/* Reclaim even referenced pagecache pages if over limit */
-			if (!check_pagecache_overlimit() && references == PAGEREF_RECLAIM_CLEAN)
-#else
 			if (references == PAGEREF_RECLAIM_CLEAN)
-#endif
 				goto keep_locked;
 			if (!may_enter_fs)
 				goto keep_locked;
@@ -1761,15 +1741,6 @@ static void shrink_active_list(unsigned long nr_to_scan,
 			}
 		}
 
-#if defined(CONFIG_PAGECACHE_RECLAIM)
-		/* While reclaiming pagecache make it easy */
-		if (sc->reclaim_pagecache_only) {
-			if (page_mapped(page) || !check_pagecache_overlimit()) {
-				list_add(&page->lru, &l_active);
-				continue;
-			}
-		}
-#endif
 		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
 			nr_rotated += hpage_nr_pages(page);
 			/*
@@ -2481,7 +2452,6 @@ unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
 		.order = order,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 		.target_mem_cgroup = NULL,
 		.nodemask = nodemask,
@@ -2513,7 +2483,6 @@ unsigned long shrink_all_pagecache_memory(unsigned long nr_pages)
 		.nr_to_reclaim = nr_pages,
 		.order = 0,
 		.swappiness = 0, /* Do not swap, only pagecache reclaim */
-		.reclaim_pagecache_only = 1, /* Flag it */
 	};
 	struct shrink_control shrink = {
 		.gfp_mask = sc.gfp_mask,
@@ -2552,7 +2521,6 @@ unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *memcg,
 		.order = 0,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 		.target_mem_cgroup = memcg,
 	};
@@ -2598,7 +2566,6 @@ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
 		.order = 0,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 		.target_mem_cgroup = memcg,
 		.nodemask = NULL, /* we don't care the placement */
@@ -2787,7 +2754,6 @@ static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
 		.order = order,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 		.target_mem_cgroup = NULL,
 	};
@@ -3316,7 +3282,6 @@ unsigned long shrink_all_memory(unsigned long nr_to_reclaim)
 		.order = 0,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 	};
 	struct shrink_control shrink = {
@@ -3509,7 +3474,6 @@ static int __zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
 		.order = order,
 #if defined(CONFIG_PAGECACHE_RECLAIM)
 		.swappiness = vm_swappiness,
-		.reclaim_pagecache_only = 0,
 #endif
 	};
 	struct shrink_control shrink = {
