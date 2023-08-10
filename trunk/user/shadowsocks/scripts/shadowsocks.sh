@@ -70,7 +70,7 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ -e "$EXTB_DIR/trojan" ] && chmod +x $EXTB_DIR/trojan && ssp_trojan="$EXTB_DIR/trojan" || ssp_trojan="$SYSB_DIR/trojan"
 [ -e "$EXTB_DIR/v2ray" ] && chmod +x $EXTB_DIR/v2ray && ssp_v2ray="$EXTB_DIR/v2ray" || ssp_v2ray="$SYSB_DIR/v2ray"
 [ -e "$EXTB_DIR/v2ray-plugin" ] && chmod +x $EXTB_DIR/v2ray-plugin && ssp_v2rp="$EXTB_DIR/v2ray-plugin" || ssp_v2rp="$SYSB_DIR/ss-v2ray-plugin"
-[ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e /tmp/chnroute.txt ] && \
+[ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
 rm -rf /etc/storage/chinadns/chnroute.txt && tar jxf /etc_ro/chnroute.bz2 -C /etc/storage/chinadns
 
 stopp()
