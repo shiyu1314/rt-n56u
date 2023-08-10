@@ -77,4 +77,4 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_CURL),y)
 	$(ROMFSINST) -d $(DESTDIR)/bin/curl /usr/bin/curl
 endif
 	cp -fP $(DESTDIR)/lib/libcurl.so* $(ROMFSDIR)/lib
-	ln -sf $(ROMFSDIR)/lib/libcurl.so.4 $(ROMFSDIR)/lib/libcurl.so.4.7.0
+	ln -sf libcurl.so.4.7.0 $(ROMFSDIR)/lib/libcurl.so.4
