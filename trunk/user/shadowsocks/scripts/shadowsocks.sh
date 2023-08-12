@@ -72,6 +72,10 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ -e "$EXTB_DIR/v2ray-plugin" ] && chmod +x $EXTB_DIR/v2ray-plugin && ssp_v2rp="$EXTB_DIR/v2ray-plugin" || ssp_v2rp="$SYSB_DIR/ss-v2ray-plugin"
 [ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
 rm -rf /etc/storage/chinadns/chnroute.txt && tar jxf /etc_ro/chnroute.bz2 -C /etc/storage/chinadns
+[ -e $EXTB_DIR/chnroute.txt ] && \
+[ $(cat /etc/storage/chinadns/chnroute.txt | wc -l) -ne $(cat $EXTB_DIR/chnroute.txt | wc -l) ] && \
+rm -rf /etc/storage/chinadns/chnroute.txt && \
+ln -sf $EXTB_DIR/chnroute.txt /etc/storage/chinadns/chnroute.txt
 
 stopp()
 {
