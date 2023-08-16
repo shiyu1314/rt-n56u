@@ -1787,7 +1787,7 @@ DBGPRINT(RT_DEBUG_INFO, ("-->%s():pRxBlk->wcid=%d\n", __FUNCTION__, pRxBlk->wcid
 		else
 #endif /* A4_CONN */
 		{
-DBGPRINT(RT_DEBUG_OFF, ("%s():  Not my bss! pRxInfo->MyBss=%d\n", __FUNCTION__, pRxInfo->MyBss));
+			DBGPRINT(RT_DEBUG_TRACE, ("%s():  Not my bss! pRxInfo->MyBss=%d\n", __FUNCTION__, pRxInfo->MyBss));
 			return FALSE;
 		}
 	}
