@@ -2277,10 +2277,10 @@ INT ApCliAllowToSendPacket(
 #endif /* WSC_AP_SUPPORT */
 
 			apcli_peer_entry = &pAd->MacTab.tr_entry[apcli_entry->MacTabWCID];
-			if (apcli_peer_entry &&
-				(apcli_peer_entry->PortSecured != WPA_802_1X_PORT_SECURED)) {
-				DBGPRINT(RT_DEBUG_ERROR, ("apcli peer entry port not secure, drop os packets!!!\n"));
-				return FALSE;
+			if (apcli_peer_entry && (apcli_peer_entry->PortSecured != WPA_802_1X_PORT_SECURED)) {
+				apcli_peer_entry->PortSecured = WPA_802_1X_PORT_SECURED;
+				DBGPRINT(RT_DEBUG_TRACE, ("apcli peer entry port not secure!!!\n"));
+				//return FALSE;
 			}
 
 #ifdef MAC_REPEATER_SUPPORT

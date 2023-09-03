@@ -118,8 +118,9 @@ INT ApAllowToSendPacket(
 		
 			tr_entry = &pAd->MacTab.tr_entry[pEntry->wcid];
 			if (tr_entry && (tr_entry->PortSecured != WPA_802_1X_PORT_SECURED)) {
-				DBGPRINT(RT_DEBUG_TRACE, ("sta port not secure, os should not send packets!!!\n"));
-				return FALSE;
+				tr_entry->PortSecured = WPA_802_1X_PORT_SECURED;
+				DBGPRINT(RT_DEBUG_TRACE, ("sta port not secure!!!\n"));
+				//return FALSE;
 			}
 			*pWcid = (UCHAR)pEntry->wcid;
 			return TRUE;
@@ -154,9 +155,9 @@ INT ApAllowToSendPacket(
 			if (pEntry && (pEntry->Sst == SST_ASSOC)){
 				tr_entry = &pAd->MacTab.tr_entry[main_wcid];
 				if (tr_entry && (tr_entry->PortSecured != WPA_802_1X_PORT_SECURED)) {
-					DBGPRINT(RT_DEBUG_ERROR,
-						("a4 port not secure, os should not send packets!!!\n"));
-					return FALSE;
+					tr_entry->PortSecured = WPA_802_1X_PORT_SECURED;
+					DBGPRINT(RT_DEBUG_ERROR, ("a4 port not secure!!!\n"));
+					//return FALSE;
 				}
 				*pWcid = main_wcid;
 				return TRUE;
