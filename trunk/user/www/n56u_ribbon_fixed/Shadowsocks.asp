@@ -31,10 +31,9 @@ $j(document).ready(function(){
 	init_itoggle('ss_enable');
 	init_itoggle('ss_type');
 	init_itoggle('ss_mode');
-	init_itoggle('ss_udp');
+	init_itoggle('ss_socks');
 	init_itoggle('ss_local_port');
 	init_itoggle('ss_mtu');
-	init_itoggle('ss_timeout');
 	init_itoggle('ss_watchcat_autorec');
 	init_itoggle('ss_update_chnroute');
 	init_itoggle('chnroute_url');
@@ -45,25 +44,23 @@ $j(document).ready(function(){
 	init_itoggle('ss_dns_local_port');
 	init_itoggle('ss_dns_remote_server');
 	init_itoggle('dns_forwarder_enable');
-	init_itoggle('ss-tunnel_enable');
-	init_itoggle('ss-tunnel_mtu');
 });
 
 function initial(){
 	show_banner(3);
 	show_menu(5,11,1);
 	show_footer();
-	change_ss_mode();
-	fill_ss_status(shadowsocks_status());
-	fill_ss_tunnel_status(shadowsocks_tunnel_status());
-	fill_ss_forwarder_status(dnsforwarder_status());
-	$("chnroute_count").innerHTML = '<#menu5_16_4#>&nbsp;&nbsp;' + chnroute_count() ;
-	$("gfwlist_count").innerHTML = '<#menu5_16_4#>&nbsp;&nbsp;' + gfwlist_count() ;
+	change_ss_type();
+	fill_ss_status(ss_status());
+	fill_ss_forwarder_status(forwarder_status());
+	fill_ss_ipt2socks_status(ipt2socks_status());
+	$("chnroute_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + chnroute_count() ;
+	$("gfwlist_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + gfwlist_count() ;
 }
 
-function change_ss_mode(){
-	var v = document.form.ss_mode.value; //0=global 1=chnroute 2=gfwlist
-	showhide_div('row_diversion_rate', (v == 2));
+function change_ss_type(){
+	var v = document.form.ss_type.value; //0=ss 1=ssr 2=trojan 3=vmess 8=custom 9=auto
+	showhide_div('row_custom_conf', (v == 8));
 }
 
 function applyRule(){
@@ -90,22 +87,22 @@ function fill_ss_status(status_code){
 	$("ss_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
 }
 
-function fill_ss_tunnel_status(status_code){
-	var stext = "Unknown";
-	if (status_code == 0)
-		stext = "<#Stopped#>";
-	else if (status_code == 1)
-		stext = "<#Running#>";
-	$("ss_tunnel_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
-}
-
 function fill_ss_forwarder_status(status_code){
 	var stext = "Unknown";
 	if (status_code == 0)
 		stext = "<#Stopped#>";
 	else if (status_code == 1)
 		stext = "<#Running#>";
-	$("dnsforwarder_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
+	$("forwarder_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
+}
+
+function fill_ss_ipt2socks_status(status_code){
+	var stext = "Unknown";
+	if (status_code == 0)
+		stext = "SOCKS5&nbsp;<#Stopped#>";
+	else if (status_code == 1)
+		stext = "SOCKS5&nbsp;<#Running#>";
+	$("ipt2socks_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
 }
 </script>
 
@@ -172,8 +169,8 @@ function fill_ss_forwarder_status(status_code){
                                 <div class="row-fluid">
                                     <div id="tabMenu" class="submenuBlock"></div>
                                     <table width="100%" cellpadding="0" cellspacing="0" class="table">
-                                        <tr> <th width="50%"><#menu5_16_5#></th>
-                                            <td>
+                                        <tr> <th colspan="4"><#menu5_16_EnableProxy#></th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
                                                     <div id="ss_enable_on_of">
                                                         <input type="checkbox" id="ss_enable_fake" <% nvram_match_x("", "ss_enable", "1", "value=1 checked"); %><% nvram_match_x("", "ss_enable", "0", "value=0"); %>>
@@ -184,14 +181,11 @@ function fill_ss_forwarder_status(status_code){
                                                     <input type="radio" value="0" name="ss_enable" id="ss_enable_0" <% nvram_match_x("", "ss_enable", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
+                                            <td colspan="1" id="ss_status"></td>
                                         </tr>
 
-                                        <tr> <th width="50%" style="border-top: 0 none;"><#running_status#></th>
-                                            <td style="border-top: 0 none;" id="ss_status"></td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_6#></th>
-                                            <td>
+                                        <tr> <th colspan="4"><#menu5_16_AutoReconnect#></th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
                                                     <div id="ss_watchcat_autorec_on_of">
                                                         <input type="checkbox" id="ss_watchcat_autorec_fake" <% nvram_match_x("", "ss_watchcat_autorec", "1", "value=1 checked"); %><% nvram_match_x("", "ss_watchcat_autorec", "0", "value=0"); %>>
@@ -202,49 +196,45 @@ function fill_ss_forwarder_status(status_code){
                                                     <input type="radio" value="0" name="ss_watchcat_autorec" id="ss_watchcat_autorec_0" <% nvram_match_x("", "ss_watchcat_autorec", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
-                                        </tr>
-
-                                        <tr> <th width="50%" style="border-top: 0 none;"><#InetControl#></th>
-                                            <td style="border-top: 0 none;">
+                                            <td colspan="1">
                                                 <input type="button" id="btn_connect_1" class="btn btn-info" value="<#Connect#>" onclick="submitInternet('Reconnect');">
                                             </td>
                                         </tr>
 
-                                        <tr> <th width="50%"><#menu5_16_7#></th>
-                                            <td>
-                                                <select name="ss_type" class="input" style="width: 145px">
+                                        <tr> <th colspan="4"><#menu5_16_ProxyMode#></th>
+                                            <td colspan="2">
+                                                <select name="ss_mode" class="input" style="width: 228px">
+                                                    <option value="0" <% nvram_match_x("","ss_mode", "0", "selected"); %>><#menu5_16_GlobalProxy#></option>
+                                                    <option value="1" <% nvram_match_x("","ss_mode", "1", "selected"); %>><#menu5_16_CountryRouting#></option>
+                                                    <option value="21" <% nvram_match_x("","ss_mode", "21", "selected"); %>><#menu5_16_GfwlistDomains#><#menu5_16_DiversionKeen#></option>
+                                                    <option value="22" <% nvram_match_x("","ss_mode", "22", "selected"); %>><#menu5_16_GfwlistDomains#><#menu5_16_DiversionTrue#></option>
+                                                </select>
+                                            </td>
+                                        </tr>
+
+                                        <tr> <th colspan="4"><#menu5_16_ProxyType#></th>
+                                            <td colspan="2">
+                                                <select name="ss_type" class="input" style="width: 228px" onchange="change_ss_type();">
                                                     <option value="9" <% nvram_match_x("","ss_type", "9", "selected"); %>><#APChnAuto#></option>
                                                     <option value="2" <% nvram_match_x("","ss_type", "2", "selected"); %>>Trojan</option>
                                                     <option value="0" <% nvram_match_x("","ss_type", "0", "selected"); %>>SS</option>
                                                     <option value="1" <% nvram_match_x("","ss_type", "1", "selected"); %>>SSR</option>
                                                     <option value="3" <% nvram_match_x("","ss_type", "3", "selected"); %>>VMess</option>
+                                                    <option value="8" <% nvram_match_x("","ss_type", "8", "selected"); %>><#CustomConf#></option>
                                                 </select>
                                             </td>
                                         </tr>
 
-                                        <tr> <th width="50%"><#menu5_16_8#></th>
-                                            <td>
-                                                <select name="ss_mode" class="input" style="width: 145px" onchange="change_ss_mode();">
-                                                    <option value="0" <% nvram_match_x("","ss_mode", "0", "selected"); %>><#menu5_16_9#></option>
-                                                    <option value="1" <% nvram_match_x("","ss_mode", "1", "selected"); %>><#menu5_16_10#></option>
-                                                    <option value="2" <% nvram_match_x("","ss_mode", "2", "selected"); %>><#menu5_16_11#></option>
-                                                </select>
+                                        <tr id="row_custom_conf" style="display:none;">
+                                            <td colspan="6" style="border-top: 0 none;">
+                                                <textarea rows="8" class="span12" style="resize:none; font-family:'Courier New', Courier, mono; font-size:13px;" wrap="off" spellcheck="false" maxlength="4096" name="scripts.ssp_custom.conf"><% nvram_dump("scripts.ssp_custom.conf",""); %></textarea>
                                             </td>
                                         </tr>
 
-                                        <tr id="row_diversion_rate" style="display:none;"> <th width="50%" style="border-top: 0 none;"><#menu5_16_110#></th>
-                                            <td style="border-top: 0 none;">
-                                                <select name="diversion_rate" class="input" style="width: 145px">
-                                                    <option value="2" <% nvram_match_x("","diversion_rate", "2", "selected"); %>><#menu5_16_112#></option>
-                                                    <option value="1" <% nvram_match_x("","diversion_rate", "1", "selected"); %>><#menu5_16_111#></option>
-                                                </select>
-                                            </td>
-                                        </tr>
+                                        <tr> <th colspan="6" style="background-color: #E3E3E3;"><#menu5_16_ParsingSettings#></th> </tr>
 
-                                        <tr> <th colspan="2" style="background-color: #E3E3E3;"><#menu5_16_12#></th> </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_13#></th>
-                                            <td>
+                                        <tr> <th colspan="4"><#menu5_16_EnableDNSForwarder#></th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
                                                 <div id="dns_forwarder_enable_on_of">
                                                     <input type="checkbox" id="dns_forwarder_enable_fake" <% nvram_match_x("", "dns_forwarder_enable", "1", "value=1 checked"); %><% nvram_match_x("", "dns_forwarder_enable", "0", "value=0"); %>>
@@ -255,40 +245,27 @@ function fill_ss_forwarder_status(status_code){
                                                     <input type="radio" value="0" name="dns_forwarder_enable" id="dns_forwarder_enable_0" <% nvram_match_x("", "dns_forwarder_enable", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
+                                            <td colspan="1" id="forwarder_status"></td>
                                         </tr>
 
-                                        <tr> <th width="50%" style="border-top: 0 none;"><#running_status#></th>
-                                            <td style="border-top: 0 none;" id="dnsforwarder_status"></td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_14#></th>
-                                            <td>
-                                                <div class="main_itoggle">
-                                                    <div id="ss-tunnel_enable_on_of">
-                                                        <input type="checkbox" id="ss-tunnel_enable_fake" <% nvram_match_x("", "ss-tunnel_enable", "1", "value=1 checked"); %><% nvram_match_x("", "ss-tunnel_enable", "0", "value=0"); %>>
-                                                    </div>
-                                                </div>
-                                                <div style="position: absolute; margin-left: -10000px;">
-                                                    <input type="radio" value="1" name="ss-tunnel_enable" id="ss-tunnel_enable_1" <% nvram_match_x("", "ss-tunnel_enable", "1", "checked"); %>><#checkbox_Yes#>
-                                                    <input type="radio" value="0" name="ss-tunnel_enable" id="ss-tunnel_enable_0" <% nvram_match_x("", "ss-tunnel_enable", "0", "checked"); %>><#checkbox_No#>
-                                                </div>
+                                        <tr> <th colspan="1"><#menu5_16_DNS#></th>
+                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_DNSLocalPort#></th>
+                                            <td colspan="1">
+                                                <input type="text" maxlength="6" class="input" size="6" name="ss_dns_local_port" style="width: 83px" placeholder="60" value="<% nvram_get_x("", "ss_dns_local_port"); %>">
+                                            </td>
+                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_DNSRemoteServer#></th>
+                                            <td colspan="2">
+                                                <input type="text" maxlength="32" class="input" size="32" name="ss_dns_remote_server" style="width: 217px" placeholder="8.8.4.4:53" value="<% nvram_get_x("","ss_dns_remote_server"); %>">
                                             </td>
                                         </tr>
 
-                                        <tr> <th width="50%" style="border-top: 0 none;"><#running_status#></th>
-                                            <td style="border-top: 0 none;" id="ss_tunnel_status"></td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_15#></th>
-                                            <td>
-                                                <input type="text" maxlength="32" class="input" size="32" name="ss_dns_remote_server" style="width: 217px" value="<% nvram_get_x("","ss_dns_remote_server"); %>">
-                                            </td>
-                                        </tr>
-
-                                        <tr> <th colspan="2" style="background-color: #E3E3E3;"><#menu5_16_16#></th> </tr>
-
-                                        <tr> <th width="50%"><a href="javascript:spoiler_toggle('spoiler_chnroute_url')"><#menu5_16_17#></a></th>
-                                            <td>
+                                        <tr>
+                                            <th colspan="4" style="white-space: nowrap;">
+                                                <a href="javascript:spoiler_toggle('spoiler_chnroute_url')"><#menu5_16_AutoUpdate#></a>
+                                                <a href="javascript:spoiler_toggle('spoiler_custom_chnroute')"><#menu5_16_CountryRouting#></a>
+                                                <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="chnroute_count"></span>
+                                            </th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
                                                     <div id="ss_update_chnroute_on_of">
                                                         <input type="checkbox" id="ss_update_chnroute_fake" <% nvram_match_x("", "ss_update_chnroute", "1", "value=1 checked"); %><% nvram_match_x("", "ss_update_chnroute", "0", "value=0"); %>>
@@ -299,33 +276,34 @@ function fill_ss_forwarder_status(status_code){
                                                     <input type="radio" value="0" name="ss_update_chnroute" id="ss_update_chnroute_0" <% nvram_match_x("", "ss_update_chnroute", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
-                                        </tr>
-
-                                        <tr id="spoiler_chnroute_url" style="display:none;">
-                                            <td colspan="2" style="text-align: center; border-top: 0 none;">
-                                                <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="chnroute_url" style="width: 654px" placeholder="<#menu5_16_17A#>" value="<% nvram_get_x("","chnroute_url"); %>">
-                                                </div>
+                                            <td colspan="1">
+                                                <input type="button" id="btn_connect_2" class="btn btn-info" value="<#menu5_16_UpdateNow#>" onclick="submitInternet('Update_chnroute');">
                                             </td>
                                         </tr>
 
-                                        <tr>
-                                            <th width="50%" style="border-top: 0 none;"><a href="javascript:spoiler_toggle('spoiler_custom_chnroute')"><#menu5_16_10#></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-info" style="padding: 5px 5px 5px 5px;" id="chnroute_count"></span></th>
-                                            <td style="border-top: 0 none;">
-                                                <input type="button" id="btn_connect_2" class="btn btn-info" value="<#menu5_16_18#>" onclick="submitInternet('Update_chnroute');">
+                                        <tr id="spoiler_chnroute_url" style="display:none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
+                                                <div>
+                                                    <input type="text" maxlength="90" class="input" size="90" name="chnroute_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLCountryRouting#>" value="<% nvram_get_x("","chnroute_url"); %>">
+                                                </div>
                                             </td>
                                         </tr>
 
                                         <tr id="spoiler_custom_chnroute" style="display:none;">
-                                            <td colspan="2" style="text-align: center; border-top: 0 none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_chnroute" style="width: 654px" placeholder="<#menu5_16_10A#>" value="<% nvram_get_x("","ss_custom_chnroute"); %>">
+                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_chnroute" style="width: 654px" placeholder="<#menu5_16_AddCountryRouting#>" value="<% nvram_get_x("","ss_custom_chnroute"); %>">
                                                 </div>
                                             </td>
                                         </tr>
 
-                                        <tr> <th width="50%"><a href="javascript:spoiler_toggle('spoiler_gfwlist_url')"><#menu5_16_17#></a></th>
-                                            <td>
+                                        <tr> 
+                                            <th colspan="4" style="white-space: nowrap;">
+                                                <a href="javascript:spoiler_toggle('spoiler_gfwlist_url')"><#menu5_16_AutoUpdate#></a>
+                                                <a href="javascript:spoiler_toggle('spoiler_custom_gfwlist')"><#menu5_16_GfwlistDomains#></a>
+                                                <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="gfwlist_count"></span>
+                                            </th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
                                                     <div id="ss_update_gfwlist_on_of">
                                                         <input type="checkbox" id="ss_update_gfwlist_fake" <% nvram_match_x("", "ss_update_gfwlist", "1", "value=1 checked"); %><% nvram_match_x("", "ss_update_gfwlist", "0", "value=0"); %>>
@@ -336,79 +314,60 @@ function fill_ss_forwarder_status(status_code){
                                                     <input type="radio" value="0" name="ss_update_gfwlist" id="ss_update_gfwlist_0" <% nvram_match_x("", "ss_update_gfwlist", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
-                                        </tr>
-
-                                        <tr id="spoiler_gfwlist_url" style="display:none;">
-                                            <td colspan="2" style="text-align: center; border-top: 0 none;">
-                                                <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_17B#>" value="<% nvram_get_x("","gfwlist_url"); %>">
-                                                </div>
+                                            <td colspan="1">
+                                                <input type="button" id="btn_connect_3" class="btn btn-info" value="<#menu5_16_UpdateNow#>" onclick="submitInternet('Update_gfwlist');">
                                             </td>
                                         </tr>
 
-                                        <tr>
-                                            <th width="50%" style="border-top: 0 none;"><a href="javascript:spoiler_toggle('spoiler_custom_gfwlist')"><#menu5_16_11#></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="label label-info" style="padding: 5px 5px 5px 5px;" id="gfwlist_count"></span></th>
-                                            <td style="border-top: 0 none;">
-                                                <input type="button" id="btn_connect_3" class="btn btn-info" value="<#menu5_16_18#>" onclick="submitInternet('Update_gfwlist');">
+                                        <tr id="spoiler_gfwlist_url" style="display:none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
+                                                <div>
+                                                    <input type="text" maxlength="90" class="input" size="90" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURDomainList#>" value="<% nvram_get_x("","gfwlist_url"); %>">
+                                                </div>
                                             </td>
                                         </tr>
 
                                         <tr id="spoiler_custom_gfwlist" style="display:none;">
-                                            <td colspan="2" style="text-align: center; border-top: 0 none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_11A#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
+                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_AddGfwlistDomains#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
                                                 </div>
                                             </td>
                                         </tr>
 
-                                        <tr> <th colspan="2" style="background-color: #E3E3E3;"><#menu5_16_19#></th> </tr>
+                                        <tr> <th colspan="6" style="background-color: #E3E3E3;"><#menu5_16_OtherSettings#></th> </tr>
 
-                                        <tr> <th width="50%"><#menu5_16_20#></th>
-                                            <td>
+                                        <tr> <th colspan="4"><#menu5_16_EnableLocalAgent#></th>
+                                            <td colspan="1">
                                                 <div class="main_itoggle">
-                                                    <div id="ss_udp_on_of">
-                                                        <input type="checkbox" id="ss_udp_fake" <% nvram_match_x("", "ss_udp", "1", "value=1 checked"); %><% nvram_match_x("", "ss_udp", "0", "value=0"); %>>
+                                                    <div id="ss_socks_on_of">
+                                                        <input type="checkbox" id="ss_socks_fake" <% nvram_match_x("", "ss_socks", "1", "value=1 checked"); %><% nvram_match_x("", "ss_socks", "0", "value=0"); %>>
                                                     </div>
                                                 </div>
                                                 <div style="position: absolute; margin-left: -10000px;">
-                                                    <input type="radio" value="1" name="ss_udp" id="ss_udp_1" <% nvram_match_x("", "ss_udp", "1", "checked"); %>><#checkbox_Yes#>
-                                                    <input type="radio" value="0" name="ss_udp" id="ss_udp_0" <% nvram_match_x("", "ss_udp", "0", "checked"); %>><#checkbox_No#>
+                                                    <input type="radio" value="1" name="ss_socks" id="ss_socks_1" <% nvram_match_x("", "ss_socks", "1", "checked"); %>><#checkbox_Yes#>
+                                                    <input type="radio" value="0" name="ss_socks" id="ss_socks_0" <% nvram_match_x("", "ss_socks", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
+                                            <td colspan="1" id="ipt2socks_status"></td>
                                         </tr>
 
-                                        <tr> <th width="50%"><#menu5_16_21#></th>
-                                            <td>
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss_local_port" style="width: 83px" value="<% nvram_get_x("", "ss_local_port"); %>">
+                                        <tr> <th colspan="4"><#menu5_16_LocalProxyPort#></th>
+                                            <td colspan="1">
+                                                <input type="text" maxlength="6" class="input" size="6" name="ss_local_port" style="width: 83px" placeholder="1080" value="<% nvram_get_x("", "ss_local_port"); %>">
                                             </td>
+                                            <td colspan="1"></td>
                                         </tr>
 
-                                        <tr> <th width="50%"><#menu5_16_22#></th>
-                                            <td>
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss_dns_local_port" style="width: 83px" value="<% nvram_get_x("", "ss_dns_local_port"); %>">
+                                        <tr> <th colspan="4"><#menu5_16_ProxyMTU#></th>
+                                            <td colspan="1">
+                                                <input type="text" maxlength="6" class="input" size="6" name="ss_mtu" style="width: 83px" placeholder="1492" value="<% nvram_get_x("", "ss_mtu"); %>">
                                             </td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_23#></th>
-                                            <td>
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss_mtu" style="width: 83px" value="<% nvram_get_x("", "ss_mtu"); %>">
-                                            </td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_24#></th>
-                                            <td>
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss-tunnel_mtu" style="width: 83px" value="<% nvram_get_x("", "ss-tunnel_mtu"); %>">
-                                            </td>
-                                        </tr>
-
-                                        <tr> <th width="50%"><#menu5_16_25#></th>
-                                            <td>
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss_timeout" style="width: 83px" value="<% nvram_get_x("","ss_timeout"); %>">
-                                            </td>
+                                            <td colspan="1"></td>
                                         </tr>
 
                                         <tr>
-                                            <td colspan="2">
+                                            <td colspan="6">
                                                 <center><input class="btn btn-primary" style="width: 217px" type="button" value="<#CTL_apply#>" onclick="submitInternet('subRestart');applyRule();" /></center>
                                             </td>
                                         </tr>

@@ -99,36 +99,6 @@ echo "-A SSP_INPUT -j RETURN" >> $ipt_f
 echo "COMMIT" >> $ipt_f && iptables-restore --noflush < $ipt_f && rm -rf $ipt_f || return 1
 }
 
-ipt_mangle()
-{
-if !(lsmod | grep -q xt_TPROXY ); then
-  modprobe xt_TPROXY
-fi
-ip route add local default dev lo table $ruletable
-ip rule add fwmark $routemark table $ruletable
-$iptm -N SSP_AGENT
-$iptm -N SSP_OUTPUT
-$iptm -N SSP_PREROUTING
-$iptm -N SSP_RULES
-$iptm -I PREROUTING 1 -j SSP_PREROUTING
-$iptm -I OUTPUT 1 -j SSP_OUTPUT
-$iptm -A SSP_AGENT -j CONNMARK --restore-mark
-$iptm -A SSP_AGENT -j CONNMARK --set-mark $routemark
-$iptm -A SSP_AGENT -j CONNMARK --save-mark
-$iptm -A SSP_OUTPUT -p udp -j SSP_RULES
-$iptm -A SSP_PREROUTING -p udp -m mark --mark $routemark -j TPROXY --on-port $local_port
-$iptm -A SSP_PREROUTING -p udp -j SSP_RULES
-$iptm -A SSP_RULES -m mark --mark $routemark -j RETURN
-$iptm -A SSP_RULES -m set --match-set private dst -j RETURN
-$iptm -A SSP_RULES -m set --match-set servers dst -j RETURN
-[ "$serveraddr" == "0" ] || $iptm -A SSP_RULES -d $serveraddr -j RETURN
-[ "$agent_mode" == "2" ] && $iptm -A SSP_RULES -m set --match-set gfwlist dst -j SSP_AGENT
-[ "$agent_mode" != "0" ] && $iptm -A SSP_RULES -m set --match-set chnlist dst -j RETURN
-[ "$agent_mode" != "2" ] && $iptm -A SSP_RULES -j SSP_AGENT
-[ "$agent_mode" == "2" ] && $iptm -A SSP_RULES -j RETURN
-return 0
-}
-
 usage()
 {
 cat <<-EOF
@@ -144,7 +114,6 @@ cat <<-EOF
            -a     <agent_mode>      透明代理模式    全局代理[0] 国内路由表[1] 黑名单域名[2]
                   <diversion_rate>  自动分流        灵敏[1] 准确[2]
            -t                       透明代理协议    TCP[REDIRECT]
-           -m                       透明代理协议    TCP[REDIRECT] UDP[TPROXY]
            -f                       清除规则        
            -h                       显示帮助        
 
@@ -192,9 +161,6 @@ while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
     t)
       flush_rules 2>/dev/null && gen_ipset && ipt_nat && ipt_filter
       ;;
-    m)
-      flush_rules 2>/dev/null && gen_ipset && ipt_nat && ipt_filter && ipt_mangle
-      ;;
     f)
       flush_rules 2>/dev/null
       ;;
@@ -207,3 +173,4 @@ done
 EC=$?
 [ $EC -eq 0 ] && logger -st "SSP[$$]Rules" "任务成功" || logger -st "SSP[$$]Rules" "任务失败!错误代码:$EC"
 exit $EC
+

@@ -2031,12 +2031,17 @@ static int shadowsocks_action_hook(int eid, webs_t wp, int argc, char **argv)
 
 static int shadowsocks_status_hook(int eid, webs_t wp, int argc, char **argv)
 {
-	int ss_status_code = pids("ss-redir");
-	websWrite(wp, "function shadowsocks_status() { return %d;}\n", ss_status_code);
-	int ss_tunnel_status_code = pids("ss-local");
-	websWrite(wp, "function shadowsocks_tunnel_status() { return %d;}\n", ss_tunnel_status_code);
+	int ss_redir_status_code = pids("ss-redir");
+	int ss_local_status_code = pids("ss-local");
+	if (ss_redir_status_code || ss_local_status_code) {
+		websWrite(wp, "function ss_status() { return %d;}\n", 1);
+	} else {
+		websWrite(wp, "function ss_status() { return %d;}\n", 0);
+	}
 	int ss_forwarder_status_code = pids("dns-forwarder");
-	websWrite(wp, "function dnsforwarder_status() { return %d;}\n", ss_forwarder_status_code);
+	websWrite(wp, "function forwarder_status() { return %d;}\n", ss_forwarder_status_code);
+	int ss_ipt2socks_status_code = pids("ipt2socks");
+	websWrite(wp, "function ipt2socks_status() { return %d;}\n", ss_ipt2socks_status_code);
 	return 0;
 }
 
@@ -2045,7 +2050,7 @@ static int rules_count_hook(int eid, webs_t wp, int argc, char **argv)
 	FILE *fstream = NULL;
 	char count[8];
 	char Loadc[8];
-	if (pids("ss-redir")) {
+	if (pids("ss-redir") || pids("ss-local")) {
 		memset(count, 0, sizeof(count));
 		fstream = popen("cat /etc/storage/chinadns/chnroute.txt |wc -l","r");
 		if(fstream) {

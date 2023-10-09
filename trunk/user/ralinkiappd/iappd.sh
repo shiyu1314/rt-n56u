@@ -2,6 +2,8 @@
 
 stop_iappd()
 {
+iptables -D INPUT -i br0 -p tcp -m tcp --dport 3517 -j ACCEPT
+iptables -D INPUT -i br0 -p udp -m udp --dport 3517 -j ACCEPT
 $(pidof ralinkiappd &>/dev/null) || return 1
 killall -q -SIGTERM ralinkiappd
 sleep 1
@@ -32,8 +34,8 @@ sysctl -wq net.ipv4.neigh.br0.base_reachable_time_ms=10000
 sysctl -wq net.ipv4.neigh.br0.delay_first_probe_time=1
 sysctl -wq net.ipv4.neigh.eth2.base_reachable_time_ms=10000
 sysctl -wq net.ipv4.neigh.eth2.delay_first_probe_time=1
-iptables -A INPUT -i br0 -p tcp --dport 3517 -j ACCEPT
-iptables -A INPUT -i br0 -p udp --dport 3517 -j ACCEPT 
+iptables -A INPUT -i br0 -p tcp -m tcp --dport 3517 -j ACCEPT
+iptables -A INPUT -i br0 -p udp -m udp --dport 3517 -j ACCEPT
 chmod +x /tmp/iappdRUNP && /tmp/iappdRUNP
 rm -rf /tmp/iappdRAUP
 rm -rf /tmp/iappdRUNP
@@ -55,3 +57,4 @@ restart)
   exit 1
   ;;
 esac
+

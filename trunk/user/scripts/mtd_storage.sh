@@ -209,6 +209,8 @@ func_fill()
 	script_vpncs="$dir_storage/vpnc_server_script.sh"
 	script_ezbtn="$dir_storage/ez_buttons_script.sh"
 
+	sspcustomconf="$dir_storage/ssp_custom.conf"
+
 	user_hosts="$dir_dnsmasq/hosts"
 	user_dnsmasq_conf="$dir_dnsmasq/dnsmasq.conf"
 	user_dhcp_conf="$dir_dnsmasq/dhcp.conf"
@@ -470,6 +472,39 @@ EOF
 
 EOF
 		chmod 755 "$script_ezbtn"
+	fi
+
+	# create SSP Custom Conf
+	if [ ! -f "$sspcustomconf" ] ; then
+		cat > "$sspcustomconf" <<EOF
+### Binaries name
+sspbinname=trojan
+### Options argument
+confoptarg=-c
+### Server addr
+serveraddr=example.com
+### Server port
+serverport=443
+### The complete configuration content of the node is written below
+{
+    "run_type": "client",
+    "local_addr": "0.0.0.0",
+    "local_port": 1080,
+    "remote_addr": "example.com",
+    "remote_port": 443,
+    "password": [
+        "password"
+    ],
+    "log_level": 2,
+    "ssl": {
+        "verify": true,
+        "verify_hostname": true,
+        "sni": "example.net"
+    }
+}
+
+EOF
+		chmod 755 "$sspcustomconf"
 	fi
 
 	# create user dnsmasq.conf

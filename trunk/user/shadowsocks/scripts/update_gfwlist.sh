@@ -34,6 +34,7 @@ mv -f /tmp/gfwlist_domain.txt /etc/storage/gfwlist/gfwlist_domain.txt
 
 mtd_storage.sh save >/dev/null 2>&1
 
-[ "$(nvram get ss_enable)" = "1" ] && /usr/bin/shadowsocks.sh rednsconf &>/dev/null
+[ "$(nvram get ss_enable)" == "1" ] && /usr/bin/shadowsocks.sh rednsconf &>/dev/null
 
 logger -st "SSP[$$]Update" "黑名单更新完成"
+

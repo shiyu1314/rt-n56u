@@ -848,11 +848,9 @@
 			{"ss_enable","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_type","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_mode","",NULL, EVM_RESTART_SHADOWSOCKS},
-			{"diversion_rate","",NULL, EVM_RESTART_SHADOWSOCKS},
-			{"ss_udp","",NULL, EVM_RESTART_SHADOWSOCKS},
+			{"ss_socks","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_local_port","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_mtu","",NULL, EVM_RESTART_SHADOWSOCKS},
-			{"ss_timeout","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_watchcat_autorec","",NULL, FALSE},
 			{"ss_update_chnroute","",NULL, FALSE},
 			{"chnroute_url","",NULL, FALSE},
@@ -863,9 +861,8 @@
 			{"ss_dns_local_port","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_dns_remote_server","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"dns_forwarder_enable", "", NULL, EVM_RESTART_SHADOWSOCKS},
-			{"ss-tunnel_enable","",NULL, EVM_RESTART_SHADOWSOCKS},
-			{"ss-tunnel_mtu","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_server_num_x","",NULL, EVM_RESTART_SHADOWSOCKS},
+			{"scripts.ssp_custom.conf", "File", NULL, EVM_RESTART_SHADOWSOCKS|EVM_BLOCK_UNSAFE},
 			{"SssList", "Group", ARGV((char*)variables_ShadowsocksConf_SssList, "8", "55", "ss_server_num_x"), EVM_RESTART_SHADOWSOCKS},
 			{0,0,0,0}
 	};

@@ -18,8 +18,7 @@ if [ -z "$CHNROUTE_URL" ]; then
 	curl -k -s -A "$user_agent" --connect-timeout 5 --retry 3 "$APNIC_URL" | sed '/\*/d' | \
 	awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > $EXTB_DIR/chnroute.txt
 else
-	curl -k -s --connect-timeout 5 --retry 3 -o $EXTB_DIR/chnroute.txt "$CHNROUTE_URL" && \
-	sed -i '/^#/d' $EXTB_DIR/chnroute.txt && sed -i '/^$/d' $EXTB_DIR/chnroute.txt
+	curl -k -s --connect-timeout 5 --retry 3 -o $EXTB_DIR/chnroute.txt "$CHNROUTE_URL"
 fi)&
 
 wait
@@ -28,6 +27,8 @@ if [ ! -e $EXTB_DIR/chnroute.txt ]; then
 	[ -e $EXTB_DIR/chnroute.old ] && mv -f $EXTB_DIR/chnroute.old $EXTB_DIR/chnroute.txt
 	logger -st "SSP[$$]Update" "路由表更新失败" && exit 0
 fi
+sed -i '/^#/d' $EXTB_DIR/chnroute.txt && sed -i '/^$/d' $EXTB_DIR/chnroute.txt && \
+echo "" >> $EXTB_DIR/chnroute.txt
 [ ! -d /etc/storage/chinadns/ ] && mkdir /etc/storage/chinadns/
 if [ $(cat $EXTB_DIR/chnroute.txt | wc -l) -le 65536 ]; then
 	mv -f $EXTB_DIR/chnroute.txt /etc/storage/chinadns/chnroute.txt
@@ -36,10 +37,11 @@ if [ $(cat $EXTB_DIR/chnroute.txt | wc -l) -le 65536 ]; then
 else
 	rm -rf /etc/storage/chinadns/chnroute.txt && \
 	ln -sf $EXTB_DIR/chnroute.txt /etc/storage/chinadns/chnroute.txt
-	[ "$EXTB_DIR" = "$CONF_DIR" ] && logger -st "SSP[$$]Update" "保留在临时目录"
-	[ "$EXTB_DIR" = "$USBB_DIR" ] && logger -st "SSP[$$]Update" "保存到外部存储"
+	[ "$EXTB_DIR" == "$CONF_DIR" ] && logger -st "SSP[$$]Update" "保留在临时目录"
+	[ "$EXTB_DIR" == "$USBB_DIR" ] && logger -st "SSP[$$]Update" "保存到外部存储"
 fi
-[ "$(nvram get ss_enable)" = "1" ] && echo "1" > $CONF_DIR/startrules && \
+[ "$(nvram get ss_enable)" == "1" ] && echo "1" > $CONF_DIR/startrules && \
 /usr/bin/shadowsocks.sh restart &>/dev/null
 
 logger -st "SSP[$$]Update" "路由表更新完成"
+

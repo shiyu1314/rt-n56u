@@ -170,7 +170,6 @@ dir_y							+= wsdd2
 else
 dir_$(SAMBA_ENABLED)				+= samba3
 endif
-dir_$(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS)	+= chnroute
 dir_$(CONFIG_FIRMWARE_INCLUDE_TTYD)		+= ttyd
 dir_$(FRP_ENABLE)				+= frp
 dir_$(SOFTETHERVPN_ENABLE)			+= softethervpn
@@ -189,7 +188,6 @@ dir_$(CONFIG_FIRMWARE_INCLUDE_MENTOHUST)		+= mentohust
 dir_$(CONFIG_FIRMWARE_INCLUDE_xTUN) 			+= xTun
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_WING),y)
 dir_y 			+= wing
-dir_y 			+= ipt2socks
 endif
 dir_$(TROJAN_ENABLE) 			+= trojan
 dir_$(CONFIG_FIRMWARE_INCLUDE_REDSOCKS)			+= redsocks
