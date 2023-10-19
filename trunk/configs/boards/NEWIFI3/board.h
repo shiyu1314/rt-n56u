@@ -15,12 +15,13 @@
 #undef  BOARD_GPIO_LED_WIFI
 #define  BOARD_GPIO_LED_SW2G	14
 #define  BOARD_GPIO_LED_SW5G	16
-#define  BOARD_GPIO_LED_POWER	15
+#define  BOARD_GPIO_LED_POWER	15		/* sys_blue: 15 */
+#define  BOARD_GPIO_LED_POWER2	6		/* sys_purple: 6 */
 #undef  BOARD_GPIO_LED_LAN
-#define BOARD_GPIO_LED_WAN	13
+#define BOARD_GPIO_LED_WAN	13		/* wan_blue: 13 */
+#define BOARD_GPIO_LED_WAN2	4		/* wan_purple: 4 */
 #define BOARD_GPIO_LED_USB	10
 #undef BOARD_GPIO_LED_ROUTER
-#undef  BOARD_GPIO_PWR_USB
 #define BOARD_HAS_5G_11AC	1
 #define BOARD_NUM_ANT_5G_TX	2
 #define BOARD_NUM_ANT_5G_RX	2
@@ -31,5 +32,6 @@
 #define BOARD_HAS_EPHY_W1000	1
 #define BOARD_NUM_UPHY_USB3	1
 #define BOARD_GPIO_PWR_USB	11
+#define BOARD_GPIO_PWR_USB2	9
 #define BOARD_GPIO_PWR_USB_ON	1
 #define BOARD_USB_PORT_SWAP	0

@@ -99,6 +99,14 @@ wd_alarmtimer(unsigned long sec, unsigned long usec)
 	setitimer(ITIMER_REAL, &wd_itv, NULL);
 }
 
+static void
+ez_action_led_toggle(void)
+{
+	int is_show = (nvram_get_int("led_front_t")) ? 0 : 1;
+
+	show_hide_front_leds(is_show);
+}
+
 #ifdef HTTPD_CHECK
 #define DETECT_HTTPD_FILE "/tmp/httpd_check_result"
 static int
@@ -188,32 +196,6 @@ httpd_check_v2()
 }
 #endif
 
-#if defined (BOARD_GPIO_LED_POWER)
-static int
-get_state_led_pwr(void)
-{
-	int i_led;
-
-	if (nvram_get_int("front_led_pwr") == 0) {
-		// POWER always OFF
-		i_led = LED_ON;
-	} else {
-		// POWER always ON
-		i_led = LED_OFF;
-	}
-
-	return i_led;
-}
-#endif
-
-static void
-ez_action_led_toggle(void)
-{
-	int is_show = (nvram_get_int("led_front_t")) ? 0 : 1;
-
-	show_hide_front_leds(is_show);
-}
-
 static void
 ez_action_reboot(void)
 {
@@ -254,9 +236,6 @@ static int
 btn_check_reset(void)
 {
 	unsigned int i_button_value = !BTN_PRESSED;
-#if defined (BOARD_GPIO_LED_POWER)
-	int i_led;
-#endif
 
 #if defined (BOARD_GPIO_BTN_WPS)
 	/* check WPS pressed */
@@ -281,12 +260,14 @@ btn_check_reset(void)
 		btn_count_reset++;
 		
 #if defined (BOARD_GPIO_LED_POWER)
-		/* flash power LED */
-		i_led = get_state_led_pwr();
-		if (btn_count_reset == 1)
-			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, i_led);
-		else if (btn_count_reset > BTN_RESET_WAIT_COUNT) {
-			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, (btn_count_reset % 2) ? !i_led : i_led);
+		if (btn_count_reset == 1) {
+			led_pwr_resetsys();
+		} else if (btn_count_reset > BTN_RESET_WAIT_COUNT) {
+			/* flash power LED */
+			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, (btn_count_reset % 2) ? LED_OFF : LED_ON);
+#if defined (BOARD_GPIO_LED_POWER2)
+			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER2, (btn_count_reset % 2) ? LED_ON : LED_OFF);
+#endif
 			dbg("You can release RESET button now!\n");
 		}
 #endif
@@ -295,18 +276,18 @@ btn_check_reset(void)
 		int press_count = btn_count_reset;
 		btn_count_reset = 0;
 		
-		if (press_count >= BTN_RESET_WAIT_COUNT) {
-			/* pressed >= 5sec, reset! */
+		if (press_count > BTN_RESET_WAIT_COUNT) {
+			/* pressed > 5sec, reset! */
 			wd_alarmtimer(0, 0);
 #if defined (BOARD_GPIO_LED_POWER)
-			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, LED_OFF);
+			led_pwr_usrinverse();
 #endif
 			erase_nvram();
 			erase_storage();
 			ez_action_reboot();
 		} else if (press_count > 0) {
 #if defined (BOARD_GPIO_LED_POWER)
-			LED_CONTROL(BOARD_GPIO_LED_POWER, LED_ON);
+			led_pwr_resetusr();
 #endif
 		}
 	}
@@ -342,13 +323,18 @@ btn_check_ez(int btn_pin, int btn_id, int *p_btn_state)
 		if (*p_btn_state == BTN_EZ_WAIT_COUNT) {
 			/* pressed == 3s */
 			ez_action_led_toggle(); // toggle front LED
+#if defined (BOARD_GPIO_LED_POWER)
+			led_pwr_resetsys();
+#endif
 		}
 		
 #if defined (BOARD_GPIO_LED_POWER)
 		if (*p_btn_state > BTN_EZ_WAIT_COUNT) {
-		/* pressed > 3s flash alert LED */
-			int i_led = get_state_led_pwr();
-			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, ((*p_btn_state) % 2) ? i_led : !i_led);
+		/* pressed > 3s flash power LED */
+			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, ((*p_btn_state) % 2) ? LED_OFF : LED_ON);
+#if defined (BOARD_GPIO_LED_POWER2)
+			cpu_gpio_set_pin(BOARD_GPIO_LED_POWER2, ((*p_btn_state) % 2) ? LED_ON : LED_OFF);
+#endif
 		}
 #endif
 	} else {
@@ -356,12 +342,12 @@ btn_check_ez(int btn_pin, int btn_id, int *p_btn_state)
 		int press_count = *p_btn_state;
 		*p_btn_state = 0;
 		
-		if (press_count >= BTN_EZ_WAIT_COUNT) {
-			/* pressed >= 3s */
+		if (press_count > BTN_EZ_WAIT_COUNT) {
+			/* pressed > 3s */
 			wd_alarmtimer(0, 0);
 			ez_event_long(btn_id);
-		} else if (press_count >= BTN_EZ_CANCEL_COUNT && press_count < BTN_EZ_WAIT_COUNT) {
-			/* pressed >= 1s */
+		} else if (press_count > BTN_EZ_CANCEL_COUNT && press_count < BTN_EZ_WAIT_COUNT) {
+			/* pressed > 1s */
 			wd_alarmtimer(0, 0);
 			ez_action_led_toggle(); // toggle front LED
 			ez_event_short(btn_id);
@@ -811,11 +797,9 @@ ez_event_short(int btn_id)
 		ez_action = nvram_get_int("ez_action_short");
 
 #if defined (BOARD_GPIO_LED_POWER)
-	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, get_state_led_pwr());
-	if (ez_action != 10) {
-		usleep(90000);
-		LED_CONTROL(BOARD_GPIO_LED_POWER, LED_ON);
-	}
+	led_pwr_usrinverse();
+	sleep(1);
+	led_pwr_resetusr();
 #endif
 
 	switch (ez_action)
@@ -896,21 +880,7 @@ ez_event_long(int btn_id)
 		ez_action = nvram_get_int("ez_action_long");
 
 #if defined (BOARD_GPIO_LED_POWER)
-	int led_state = LED_ON;
-
-	switch (ez_action)
-	{
-	case 7: // Router reboot
-	case 8: // Router shutdown
-		led_state = LED_OFF;
-		break;
-	case 11: // Front LED toggle
-		led_state = -1;
-		break;
-	}
-
-	if (led_state >= 0)
-		LED_CONTROL(BOARD_GPIO_LED_POWER, led_state);
+		led_pwr_resetusr();
 #endif
 
 	switch (ez_action)

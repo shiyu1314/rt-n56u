@@ -247,6 +247,10 @@ init_gpio_leds_buttons(void)
 #if defined (BOARD_GPIO_LED_WAN)
 	cpu_gpio_set_pin_direction(BOARD_GPIO_LED_WAN, 1);
 	cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, LED_OFF);
+#if defined (BOARD_GPIO_LED_WAN2)
+	cpu_gpio_set_pin_direction(BOARD_GPIO_LED_WAN2, 1);
+	cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, LED_OFF);
+#endif
 #endif
 	/* hide LAN soft-led  */
 #if defined (BOARD_GPIO_LED_LAN)
@@ -289,7 +293,11 @@ init_gpio_leds_buttons(void)
 	cpu_gpio_set_pin(14, LED_ON); // set GPIO to low
 #endif
 	cpu_gpio_set_pin_direction(BOARD_GPIO_LED_POWER, 1);
-	LED_CONTROL(BOARD_GPIO_LED_POWER, LED_ON);
+	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, LED_ON);
+#if defined (BOARD_GPIO_LED_POWER2)
+	cpu_gpio_set_pin_direction(BOARD_GPIO_LED_POWER2, 1);
+	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER2, LED_ON);
+#endif
 #endif
 
 	/* enable USB port 5V power */
@@ -333,6 +341,53 @@ init_gpio_leds_buttons(void)
 	cpu_gpio_irq_set(BOARD_GPIO_BTN_PWR_INT, 1, 0, 1);
 #endif
 }
+
+#if defined (BOARD_GPIO_LED_POWER)
+static int
+get_state_led_pwr(void)
+{
+	int need_on_off;
+
+	if (nvram_get_int("front_led_pwr") == 0) {
+		// POWER always OFF
+		need_on_off = LED_ON;
+	} else {
+		// POWER always ON
+		need_on_off = LED_OFF;
+	}
+
+	return need_on_off;
+}
+
+void
+led_pwr_resetusr(void)
+{
+#if defined (BOARD_GPIO_LED_POWER2)
+	LED_CONTROL(BOARD_GPIO_LED_POWER2, LED_OFF);
+#endif
+	LED_CONTROL(BOARD_GPIO_LED_POWER, LED_ON);
+}
+
+void
+led_pwr_resetsys(void)
+{
+#if defined (BOARD_GPIO_LED_POWER2)
+	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER2, LED_OFF);
+#endif
+	int need_on_off = get_state_led_pwr();
+	if (need_on_off == LED_ON)
+		cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, LED_ON);
+}
+
+void
+led_pwr_usrinverse(void)
+{
+	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER, get_state_led_pwr());
+#if defined (BOARD_GPIO_LED_POWER2)
+	cpu_gpio_set_pin(BOARD_GPIO_LED_POWER2, LED_ON);
+#endif
+}
+#endif
 
 static void
 set_wan0_vars(void)
@@ -594,6 +649,9 @@ flash_firmware(void)
 			 "wpa_supplicant",
 			 NULL };
 
+#if defined (BOARD_GPIO_LED_POWER)
+	led_pwr_usrinverse();
+#endif
 	stop_misc();
 	stop_services(0); // don't stop httpd/telnetd/sshd/vpn
 
@@ -716,26 +774,31 @@ LED_CONTROL(int gpio_led, int flag)
 	switch (gpio_led)
 	{
 #if defined (BOARD_GPIO_LED_ROUTER)
-	case BOARD_GPIO_LED_ROUTER:
+		case BOARD_GPIO_LED_ROUTER:
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_WAN)
-	case BOARD_GPIO_LED_WAN:
+		case BOARD_GPIO_LED_WAN:
 		front_led_x = nvram_get_int("front_led_wan");
 		break;
+#if defined (BOARD_GPIO_LED_WAN2)
+		case BOARD_GPIO_LED_WAN2:
+		front_led_x = 1;
+		break;
+#endif
 #endif
 #if defined (BOARD_GPIO_LED_LAN)
-	case BOARD_GPIO_LED_LAN:
+		case BOARD_GPIO_LED_LAN:
 		front_led_x = nvram_get_int("front_led_lan");
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_WIFI)
-	case BOARD_GPIO_LED_WIFI:
+		case BOARD_GPIO_LED_WIFI:
 		front_led_x = nvram_get_int("front_led_wif");
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_SW2G)
-	case BOARD_GPIO_LED_SW2G:
+		case BOARD_GPIO_LED_SW2G:
 		is_soft_blink = 1;
 		front_led_x = nvram_get_int("front_led_wif");
 		if (front_led_x) {
@@ -748,7 +811,7 @@ LED_CONTROL(int gpio_led, int flag)
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_SW5G) && (!defined (BOARD_GPIO_LED_SW2G) || (BOARD_GPIO_LED_SW5G != BOARD_GPIO_LED_SW2G))
-	case BOARD_GPIO_LED_SW5G:
+		case BOARD_GPIO_LED_SW5G:
 		is_soft_blink = 1;
 		front_led_x = nvram_get_int("front_led_wif");
 		if (front_led_x) {
@@ -757,9 +820,9 @@ LED_CONTROL(int gpio_led, int flag)
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_USB)
-	case BOARD_GPIO_LED_USB:
+		case BOARD_GPIO_LED_USB:
 #if defined (BOARD_GPIO_LED_USB2)
-	case BOARD_GPIO_LED_USB2:
+		case BOARD_GPIO_LED_USB2:
 #endif
 #if defined (USE_USB_SUPPORT)
 		front_led_x = nvram_get_int("front_led_usb");
@@ -769,16 +832,21 @@ LED_CONTROL(int gpio_led, int flag)
 		break;
 #endif
 #if defined (BOARD_GPIO_LED_POWER)
-	case BOARD_GPIO_LED_POWER:
+		case BOARD_GPIO_LED_POWER:
 		front_led_x = nvram_get_int("front_led_pwr");
 		break;
+#if defined (BOARD_GPIO_LED_POWER2)
+		case BOARD_GPIO_LED_POWER2:
+		front_led_x = 1;
+		break;
+#endif
 #endif
 #if defined (BOARD_GPIO_LED_ALL)
-	case BOARD_GPIO_LED_ALL:
+		case BOARD_GPIO_LED_ALL:
 		front_led_x = nvram_get_int("front_led_all");
 		break;
 #endif
-	default:
+		default:
 		return;
 	}
 
@@ -990,6 +1058,9 @@ shutdown_router(int level)
 	}
 #if defined (BOARD_GPIO_LED_WAN)
 	LED_CONTROL(BOARD_GPIO_LED_WAN, LED_OFF);
+#if defined (BOARD_GPIO_LED_WAN2)
+	LED_CONTROL(BOARD_GPIO_LED_WAN2, LED_OFF);
+#endif
 #endif
 
 	storage_save_time(10);
@@ -1015,7 +1086,7 @@ shutdown_router(int level)
 	LED_CONTROL(BOARD_GPIO_LED_LAN, LED_OFF);
 #endif
 #if defined (BOARD_GPIO_LED_POWER)
-	LED_CONTROL(BOARD_GPIO_LED_POWER, LED_OFF);
+	led_pwr_usrinverse();
 #endif
 }
 
@@ -1631,6 +1702,9 @@ main(int argc, char **argv)
 			return -1;
 		}
 		init_main_loop();
+#if defined (BOARD_GPIO_LED_POWER)
+		led_pwr_resetusr();
+#endif
 		return 0;
 	}
 

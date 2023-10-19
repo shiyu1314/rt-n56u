@@ -172,6 +172,11 @@ void storage_save_time(time_t delta);
 void write_storage_to_mtd(void);
 void erase_storage(void);
 void erase_nvram(void);
+#if defined (BOARD_GPIO_LED_POWER)
+void led_pwr_resetusr(void);
+void led_pwr_resetsys(void);
+void led_pwr_usrinverse(void);
+#endif
 
 /* init.c */
 void init_main_loop(void);

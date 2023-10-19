@@ -568,11 +568,18 @@ init_main_loop(void)
 int
 sys_exit(void)
 {
+#if defined (BOARD_GPIO_LED_POWER)
+	led_pwr_usrinverse();
+#endif
 	return kill(1, SIGTERM);
 }
 
 int
 sys_stop(void)
 {
+#if defined (BOARD_GPIO_LED_POWER)
+	led_pwr_usrinverse();
+#endif
 	return kill(1, SIGQUIT);
 }
+
