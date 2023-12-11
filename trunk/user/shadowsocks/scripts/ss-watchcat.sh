@@ -11,16 +11,15 @@ dnscqstart="$CONF_DIR/dnscqstart"
 socksstart="$CONF_DIR/socksstart"
 quickstart="$CONF_DIR/quickstart"
 startrules="$CONF_DIR/startrules"
-timeslimit="$CONF_DIR/timeslimit"
+internetcd="$CONF_DIR/internetcd"
 ssp_log_file="/tmp/ss-watchcat.log"
 ubin_log_file="/tmp/ss-redir.log"
 max_log_bytes="100000"
-gfw_domain="https://www.google.com/"
-chn_domain="https://www.taobao.com/"
-user_agent="Mozilla/5.0 (X11; Linux; rv:74.0) Gecko/20100101 Firefox/74.0"
 CRON_CONF="/etc/storage/cron/crontabs/$(nvram get http_username)"
 ubinlowRAM="65536"
 
+tl_timeout=$(nvram get di_timeout)
+timeslimit=$(expr $tl_timeout \* 3)
 autorec=$(nvram get ss_watchcat_autorec)
 extbpid=$(expr 100000 + $$)
 logmark=${extbpid:1}
@@ -125,19 +124,10 @@ daten(){
 	fi
 }
 
-scout(){
-	[ "$3" == "0" ] && keywords='HTTP/1.1 200 OK' && extraoptions='-L -I'
-	[ "$3" == "1" ] && keywords='^<!DOCTYPE' && extraoptions='-L'
-	curl "$1" $extraoptions -k -s --connect-timeout $2 --max-time $2 --speed-time $2 \
-	--speed-limit 1 -A "$user_agent" | grep -q -s -i "$keywords" || return 1
-}
-
 score(){
 	sed -i '/^'$(infor 0)'/d' $scoresfile
 	echo "$(infor 1)#$(count $scorecount)" >> $scoresfile
 	sort -u -n -r $scoresfile > $CONF_DIR/scoresfile.tmp && mv -f $CONF_DIR/scoresfile.tmp $scoresfile
-	servernum="0"
-	available="0"
 	while read line
 	do
 		nodeinfor=$(echo "$line" | awk -F# '{print $1}')
@@ -153,18 +143,13 @@ score(){
 		loger "├──连接时长:$nodescore"
 		[ $nodeinfor == $(infor 1) ] && loger "┣━━当前节点:$nodeisnum" || \
 		loger "┣━━历史节点:$nodeisnum"
-		[ $nodescore -ge 30 ] && available=$((available+1))
-		servernum=$((servernum+1))
 	done < $scoresfile
-	tlimit=$(count $timeslimit) && tlanti=$(expr 10 - $tlimit) && tptime=$(expr $tlanti \* 10)
-	if [ "$1" == "1" ] && [ $(count $scorecount) -ge $tptime ]; then
-		count $timeslimit -- 1 2
-	elif [ "$1" == "1" ] && [ $(expr $available \* 100) -gt $(expr $servernum \* 70) ]; then
-		count $timeslimit -- 1 2
-	elif [ "$1" == "0" ] && [ $(expr $available \* 100) -lt $(expr $servernum \* 30) ]; then
-		count $timeslimit ++ 1 8
-	fi
 	return 0
+}
+
+sleeptime(){
+	sleep $1
+	return $2
 }
 
 watchcat_stop_ssp(){
@@ -174,11 +159,15 @@ watchcat_stop_ssp(){
 	echo "watchcat_stop_ssp" > $statusfile && /usr/bin/shadowsocks.sh stop &>/dev/null && return 1
 }
 
+notify_detect_internet(){
+	killall -q -SIGHUP detect_internet
+}
+
 watchcat_start_ssp(){
 	$(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || return 0
 	count $errorcount -- 1 0 && [ $(count $errorcount) -le 0 ] || return 1
-	scout "$chn_domain" "$(count $timeslimit)" 0 || \
-	scout "$chn_domain" "$(count $timeslimit)" 1 || return 1
+	notify_detect_internet && sleeptime $timeslimit 0 && count $internetcd +- 0
+	[ "$(nvram get link_internet)" == "1" ] || return 1
 	[ "$(nvram get ss_enable)" == "1" ] || /usr/bin/shadowsocks.sh stop &>/dev/null
 	!(pidof $sspubin &>/dev/null) || /usr/bin/shadowsocks.sh stop &>/dev/null
 	STA_LOG="恢复正常!!!重新启动代理" && loger "├──$STA_LOG" && logger -st "SSP[$$]WARNING" "$STA_LOG"
@@ -188,46 +177,41 @@ watchcat_start_ssp(){
 
 reconnection(){
 	daten || return 1
-	[ "$(count $timeslimit)" == "0" ] && count $timeslimit +- 5
-	timel=$(count $timeslimit) && timen=$(expr $timel \* 6 + 7)
-	[ "$recyesornot" == "1" ] && [ $(daten -l) -ge $timen ] || return 0
-	[ "$(daten -m)" == "0" ] || \
-	$([ "$autorec" == "1" ] && [ "$(daten -m)" == "5" ]) || \
-	$([ "$autorec" == "1" ] && [ $(count $netdpcount) -ge 1 ]) || return 0
-	[ "$autorec" == "1" ] && scoreamount="5" || scoreamount="10"
-	recyesornot="0"
-	scout "$gfw_domain" "$(count $timeslimit)" 0 || scout "$gfw_domain" "$(count $timeslimit)" 1
-	if [ "$?" == "0" ]; then
-		count $netdpcount +- 0 && count $scorecount ++ $scoreamount 10080 && score 1
-	elif [ "$?" == "1" ]; then
-		scout "$chn_domain" "$(count $timeslimit)" 0 || scout "$chn_domain" "$(count $timeslimit)" 1
-		if [ "$?" == "0" ]; then
+	[ "$recyesornot" == "1" ] || sleeptime 1 1 || return 0
+	recyesornot="0" && count $scorecount ++ 1 10080
+	[ $(count $netdpcount) -ge 1 ] || [ $(count $internetcd) -eq 1 ] || sleeptime 1 1 || return 0
+	notify_detect_internet && sleeptime $timeslimit 0 && count $internetcd +- 0 && 
+	if [ "$(nvram get global_internet)" == "1" ]; then
+		count $netdpcount +- 0 && score
+	elif [ "$(nvram get global_internet)" == "0" ]; then
+		if [ "$(nvram get link_internet)" == "1" ]; then
 			if [ "$autorec" == "1" ]; then
 				count $netdpcount ++ 1 9
-				if [ $(count $netdpcount) -ge 3 ]; then
-					count $errorcount ++ 1 5 && recyesornot="1"
-					score 0 && count $scorecount +- 0
+				if [ $(count $netdpcount) -ge 2 ]; then
+					count $errorcount ++ 1 5
+					score && count $scorecount +- 0
 					watchcat_stop_ssp || watchcat_start_ssp || return 1
 				else
-					score 0
+					count $scorecount -- 1 0
 				fi
 			else
 				count $netdpcount ++ 1 9
 				if [ $(count $netdpcount) -ge 9 ]; then
 					count $errorcount ++ 1 5 && count $areconnect +- 0
+					score && count $scorecount +- 0
 					watchcat_stop_ssp || return 1
 				else
-					return 0
+					count $scorecount -- 1 0
 				fi
 			fi
-		elif [ "$?" == "1" ]; then
+		elif [ "$(nvram get link_internet)" == "0" ]; then
 			count $errorcount ++ 1 5 && count $areconnect +- 0
 			watchcat_stop_ssp || return 1
 		else
-			return 1
+			return 0
 		fi
 	else
-		return 1
+		return 0
 	fi
 }
 
@@ -240,7 +224,7 @@ automaticset(){
 		if [ "$dndetinams" == "0" ] || [ "$inams" == "$bouts" ]; then
 			dndet
 		fi
-		sleep 1 && reconnection || inams=61
+		reconnection || inams=61
 		Etime=$(daten -l) && ET=${Etime:0}
 		UT=$(expr $ST - $ET)
 		inams=$((inams+UT))
@@ -259,12 +243,13 @@ check_cat_file(){
 	while [ $(stat -c %s $ubin_log_file) -gt $max_log_bytes ]; do
 		sed -i '9d' $ubin_log_file
 	done
+	[ $(daten -l) -ge $(expr $timeslimit \* 2 + 9) ] || return 1
 	[ "$cronboot" == "1" ] && return 0 || return 1
 }
 
 check_cat_sole(){
 	$(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_automaticset') && \
-	echo "daten_stopwatchcat" > $statusfile && sleep 2 && echo "check_cat_sole" > $statusfile
+	echo "daten_stopwatchcat" > $statusfile && sleeptime 2 0 && echo "check_cat_sole" > $statusfile
 	for watchcatPID in $(pidof ss-watchcat.sh); do
 		[ "$watchcatPID" != "$$" ] && kill -9 $watchcatPID
 	done

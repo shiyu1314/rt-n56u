@@ -389,6 +389,53 @@ led_pwr_usrinverse(void)
 }
 #endif
 
+int
+set_led_wan(int state, int ledwl, int force)
+{
+#if defined (BOARD_GPIO_LED_WAN)
+	int led_show = nvram_get_int("led_front_t");
+	int led_wan_level = nvram_get_int("front_led_wan");
+
+	if ((state == 0 && ledwl == 0 && force == 1) || led_show == 0) {
+		cpu_gpio_set_pin_direction(BOARD_GPIO_LED_WAN, 1);
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, LED_OFF);
+#if defined (BOARD_GPIO_LED_WAN2)
+		cpu_gpio_set_pin_direction(BOARD_GPIO_LED_WAN2, 1);
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, LED_OFF);
+#endif
+	}
+
+	if (state == 3 && ledwl != 0 && ledwl == led_wan_level && led_show == 1) {
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") != 1) ? LED_ON : LED_OFF);
+#if defined (BOARD_GPIO_LED_WAN2)
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") != 1) ? LED_OFF : LED_ON);
+#endif
+#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
+		LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") != 1) ? LED_OFF : LED_ON);
+#endif
+		sleep(1);
+	}
+#endif
+
+	if (force == 1 || state != nvram_get_int("link_internet")) {
+		if (state >= 0 && state <= 2)
+			nvram_set_int_temp("link_internet", state);
+#if defined (BOARD_GPIO_LED_WAN)
+		if (ledwl != 0 && ledwl == led_wan_level && led_show == 1) {
+			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") == 1) ? LED_ON : LED_OFF);
+#if defined (BOARD_GPIO_LED_WAN2)
+			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") == 1) ? LED_OFF : LED_ON);
+#endif
+#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
+			LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") == 1) ? LED_OFF : LED_ON);
+#endif
+		}
+#endif
+	}
+
+	return nvram_get_int("link_internet");
+}
+
 static void
 set_wan0_vars(void)
 {
@@ -575,6 +622,7 @@ nvram_convert_misc_values(void)
 
 	nvram_set_int_temp("networkmap_fullscan", 0);
 	nvram_set_int_temp("link_internet", 2);
+	nvram_set_int_temp("global_internet", 2);
 	nvram_set_int_temp("link_wan", 0);
 
 	nvram_set_int_temp("led_front_t", 1);
@@ -1056,12 +1104,7 @@ shutdown_router(int level)
 		stop_services_lan_wan();
 		set_ipv4_forward(0);
 	}
-#if defined (BOARD_GPIO_LED_WAN)
-	LED_CONTROL(BOARD_GPIO_LED_WAN, LED_OFF);
-#if defined (BOARD_GPIO_LED_WAN2)
-	LED_CONTROL(BOARD_GPIO_LED_WAN2, LED_OFF);
-#endif
-#endif
+	set_led_wan(0, 0, 1);
 
 	storage_save_time(10);
 	write_storage_to_mtd();

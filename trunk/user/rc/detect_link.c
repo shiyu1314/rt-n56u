@@ -94,26 +94,15 @@ dl_handle_link_wan(void)
 #if defined (BOARD_GPIO_LED_WAN)
 		front_led_x = nvram_get_int("front_led_wan");
 		if (front_led_x == 1) {
-			LED_CONTROL(BOARD_GPIO_LED_WAN, (dl_status_wan) ? LED_ON : LED_OFF);
-#if defined (BOARD_GPIO_LED_WAN2)
-			LED_CONTROL(BOARD_GPIO_LED_WAN2, (dl_status_wan) ? LED_OFF : LED_ON);
-#endif
-#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-			LED_CONTROL(BOARD_GPIO_LED_WIFI, (dl_status_wan) ? LED_OFF : LED_ON);
-#endif
+			set_led_wan(dl_status_wan, 1, 0);
 		} else if (front_led_x == 2) {
 			if (!get_wan_wisp_active(NULL) && !get_usb_modem_wan(0)) {
 				int dl_state = (dl_status_wan && has_wan_gw4() && has_wan_ip4(1)) ? 1 : 0;
-				LED_CONTROL(BOARD_GPIO_LED_WAN, (dl_state) ? LED_ON : LED_OFF);
-#if defined (BOARD_GPIO_LED_WAN2)
-				LED_CONTROL(BOARD_GPIO_LED_WAN2, (dl_state) ? LED_OFF : LED_ON);
-#endif
-#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-				LED_CONTROL(BOARD_GPIO_LED_WIFI, (dl_state) ? LED_OFF : LED_ON);
-#endif
+				set_led_wan(dl_state, 2, 0);
 			}
 		}
 #endif
+		notify_run_detect_internet(2);
 #if defined (BOARD_GPIO_LED_LAN)
 		front_led_x = nvram_get_int("front_led_lan");
 		if (front_led_x == 1)
@@ -141,8 +130,10 @@ dl_handle_link_wan(void)
 			}
 		}
 		
-		if (dl_counter_total > 1)
+		if (dl_counter_total > 1) {
 			logmessage("detect_link", "WAN port link %s!", (dl_status_wan) ? "restored" : "down detected");
+			notify_run_detect_internet(2);
+		}
 	}
 
 	if ((dl_counter_dhcpc_renew > 0) && (dl_counter_total >= dl_counter_dhcpc_renew)) {
@@ -195,15 +186,10 @@ dl_handle_link_wisp(void)
 		front_led_wan = nvram_get_int("front_led_wan");
 		if (front_led_wan == 2) {
 			int dl_state = (dl_status_wisp && has_wan_gw4() && has_wan_ip4(1)) ? 1 : 0;
-			LED_CONTROL(BOARD_GPIO_LED_WAN, (dl_state) ? LED_ON : LED_OFF);
-#if defined (BOARD_GPIO_LED_WAN2)
-			LED_CONTROL(BOARD_GPIO_LED_WAN2, (dl_state) ? LED_OFF : LED_ON);
-#endif
-#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-			LED_CONTROL(BOARD_GPIO_LED_WIFI, (dl_state) ? LED_OFF : LED_ON);
-#endif
+			set_led_wan(dl_state, 2, 0);
 		}
 #endif
+		notify_run_detect_internet(2);
 	}
 }
 
@@ -303,18 +289,15 @@ dl_update_leds(void)
 			else
 				dl_state = (                  has_wan_gw4() && has_wan_ip4(0)) ? 1 : 0;
 		} else if (front_led_x == 3) {
-			dl_state = get_internet_state_cached();
+			dl_state = 3;
 		}
 	} else {
 		if (front_led_x == 1)
 			dl_state = dl_status_wan;
 		else if (front_led_x == 3)
-			dl_state = get_internet_state_cached();
+			dl_state = 3;
 	}
-	LED_CONTROL(BOARD_GPIO_LED_WAN, (dl_state) ? LED_ON : LED_OFF);
-#if defined (BOARD_GPIO_LED_WAN2)
-	LED_CONTROL(BOARD_GPIO_LED_WAN2, (dl_state) ? LED_OFF : LED_ON);
-#endif
+	set_led_wan(dl_state, front_led_x, 1);
 #endif
 #if defined (BOARD_GPIO_LED_LAN)
 	front_led_x = nvram_get_int("front_led_lan");
@@ -356,9 +339,7 @@ dl_update_leds(void)
 		dl_handle_link_usb(1);
 	}
 #endif
-#if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-	LED_CONTROL(BOARD_GPIO_LED_WIFI, (dl_state) ? LED_OFF : LED_ON);
-#elif defined (BOARD_GPIO_LED_WIFI)
+#if defined (BOARD_GPIO_LED_WIFI) && !defined (BOARD_K2P) && !defined (BOARD_PSG1218)
 	LED_CONTROL(BOARD_GPIO_LED_WIFI, LED_ON);
 #endif
 #if defined (BOARD_GPIO_LED_ALL)

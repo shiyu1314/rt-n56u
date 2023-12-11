@@ -17,6 +17,10 @@ var is_ie11p = (/trident\/7\./).test(uagent);
 var is_mobile = (/iphone|ipod|ipad|iemobile|android|blackberry|fennec/).test(uagent);
 
 var new_wan_internet = '<% nvram_get_x("", "link_internet"); %>';
+var new_global_internet = '<% nvram_get_x("", "global_internet"); %>';
+var new_di_timeout = '<% nvram_get_x("", "di_timeout"); %>';
+var id_detect_internet = 0;
+var id_showset_status = 0;
 var id_check_status = 0;
 var id_system_info = 0;
 
@@ -46,33 +50,65 @@ function unload_body(){
 	return true;
 }
 
-function enableCheckChangedStatus(flag){
-	var tm_int_sec = 1;
-
+function enableCheckChangedStatus(){
 	disableCheckChangedStatus();
 
-	if (new_wan_internet == '0')
-		tm_int_sec = 2;
-	else if (new_wan_internet == '1')
-		tm_int_sec = 5;
+	var tm_edi_sec = new_di_timeout * 1;
+	var tm_ecs_sec = new_di_timeout * 3 + tm_edi_sec;
+	var tm_ess_sec = tm_ecs_sec - 1;
 
-	id_check_status = setTimeout("get_changed_status();", tm_int_sec * 1000);
+	id_detect_internet = setTimeout("get_detect_internet();", tm_edi_sec * 1000);
+	id_showset_status = setTimeout("set_internet_status();", tm_ess_sec * 1000);
+	id_check_status = setTimeout("get_changed_status();", tm_ecs_sec * 1000);
+}
+
+function CheckChangedStatus(global_internet, wan_internet, di_timeout){
+	disableCheckChangedStatus();
+
+	this.new_global_internet = global_internet;
+	this.new_wan_internet = wan_internet;
+	this.new_di_timeout = di_timeout;
+
+	var tm_di_sec = new_di_timeout * 9;
+
+	if (new_wan_internet == '0')
+		tm_di_sec = new_di_timeout * 1;
+	else if (new_global_internet == '0')
+		tm_di_sec = new_di_timeout * 5;
+
+	var tm_cs_sec = new_di_timeout * 3 + tm_di_sec;
+	var tm_ss_sec = tm_cs_sec - 1;
+
+	id_detect_internet = setTimeout("get_detect_internet();", tm_di_sec * 1000);
+	id_showset_status = setTimeout("set_internet_status();", tm_ss_sec * 1000);
+	id_check_status = setTimeout("get_changed_status();", tm_cs_sec * 1000);
 }
 
 function disableCheckChangedStatus(){
+	clearTimeout(id_detect_internet);
+	clearTimeout(id_showset_status);
 	clearTimeout(id_check_status);
 }
 
+function set_internet_status(){
+	clearTimeout(id_showset_status);
+	if((location.pathname == "/" || location.pathname == "/index.asp") && (typeof(update_internet_status) === 'function'))
+		showMapWANStatus(4);
+}
+
 function update_internet_status(){
-	if (new_wan_internet == '1')
+	if (new_global_internet == '1')
+		showMapWANStatus(3);
+	else if (new_wan_internet == '1')
 		showMapWANStatus(1);
-	else if(new_wan_internet == '2')
+	else if (new_wan_internet == '2')
 		showMapWANStatus(2);
 	else
 		showMapWANStatus(0);
 }
 
-function notify_status_internet(wan_internet){
+function notify_status_internet(global_internet, wan_internet){
+	this.new_global_internet = global_internet;
 	this.new_wan_internet = wan_internet;
 	if((location.pathname == "/" || location.pathname == "/index.asp") && (typeof(update_internet_status) === 'function'))
 		update_internet_status();
@@ -83,6 +119,22 @@ function notify_status_vpn_client(vpnc_state){
 		update_vpnc_status(vpnc_state);
 }
 
+function get_detect_internet(){
+	var $j = jQuery.noConflict();
+	$j.ajax({
+		type: 'get',
+		url: '/detect_internet.asp',
+		dataType: 'script',
+		cache: true,
+		error: function(xhr) {
+			clearTimeout(id_detect_internet);
+		},
+		success: function(response) {
+			clearTimeout(id_detect_internet);
+		}
+	});
+}
+
 function get_changed_status(){
 	var $j = jQuery.noConflict();
 	$j.ajax({
@@ -91,12 +143,12 @@ function get_changed_status(){
 		dataType: 'script',
 		cache: true,
 		error: function(xhr) {
-			;
+			enableCheckChangedStatus();
 		},
 		success: function(response) {
-			notify_status_internet(now_wan_internet);
+			CheckChangedStatus(now_global_internet, now_wan_internet, now_di_timeout);
+			notify_status_internet(now_global_internet, now_wan_internet);
 			notify_status_vpn_client(now_vpnc_state);
-			enableCheckChangedStatus();
 		}
 	});
 }

@@ -51,6 +51,10 @@
 #define SCRIPT_POST_WAN			"/etc/storage/post_wan_script.sh"
 #define SCRIPT_POST_FIREWALL		"/etc/storage/post_iptables_script.sh"
 #define SCRIPT_INTERNET_STATE		"/etc/storage/inet_state_script.sh"
+#define SCRIPT_DETECTINTERNET_A		"/etc/storage/detectinternet_1.sh"
+#define SCRIPT_DETECTINTERNET_B		"/etc/storage/detectinternet_2.sh"
+#define SCRIPT_DETECTINTERNET_C		"/etc/storage/detectinternet_3.sh"
+#define SCRIPT_DETECTINTERNET_D		"/etc/storage/detectinternet_4.sh"
 #define SCRIPT_SHUTDOWN			"/etc/storage/shutdown_script.sh"
 
 #define SCRIPT_OVPN_SERVER		"ovpns.script"
@@ -177,6 +181,7 @@ void led_pwr_resetusr(void);
 void led_pwr_resetsys(void);
 void led_pwr_usrinverse(void);
 #endif
+int  set_led_wan(int state, int ledwl, int force);
 
 /* init.c */
 void init_main_loop(void);
@@ -311,7 +316,7 @@ void manual_wan_disconnect(void);
 void manual_wisp_reassoc(void);
 void deferred_wan_connect(void);
 void notify_on_wan_ether_link_restored(void);
-void notify_on_internet_state_changed(int has_internet, long elapsed);
+void notify_on_internet_state_changed(int has_internet);
 void add_dhcp_routes(char *rt, char *rt_rfc, char *rt_ms, char *ifname, int metric);
 void add_dhcp_routes_by_prefix(char *prefix, char *ifname, int metric);
 int  add_static_wan_routes(char *wan_ifname);

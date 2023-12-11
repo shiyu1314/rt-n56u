@@ -38,7 +38,7 @@ socksstart="$CONF_DIR/socksstart"
 rulesstart="$CONF_DIR/rulesstart"
 quickstart="$CONF_DIR/quickstart"
 startrules="$CONF_DIR/startrules"
-timeslimit="$CONF_DIR/timeslimit"
+internetcd="$CONF_DIR/internetcd"
 
 sspbinname=$(cat /etc/storage/ssp_custom.conf | grep '^sspbinname' | awk -F= '{print $2}')
 autorec=$(nvram get ss_watchcat_autorec)
@@ -199,7 +199,6 @@ del_score_file()
 {
 rm -rf $scoresfile
 rm -rf $scorecount
-rm -rf $timeslimit
 return 0
 }
 
@@ -225,6 +224,7 @@ if [ "$ss_enable" == "0" ]; then
   del_score_file
   rm -rf $areconnect
   rm -rf $startrules
+  rm -rf $internetcd
 else
   $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || stop_watchcat
 fi
@@ -837,23 +837,23 @@ agent_pact()
 echo " -t"
 }
 
-opt_arg()
-{
-if [ "$ssp_server_type" == "Custom" ] && [ "$confoptarg" != "" ]; then
-  echo " $confoptarg"
-elif [ "$ssp_server_type" == "VMess" ]; then
-  echo " run -c"
-else
-  echo " -c"
-fi
-}
-
 confile()
 {
 if [ "$ssp_ubin" == "$local_bin" ]; then
   echo " $CONF_DIR/$local_json_file"
 else
   echo " $CONF_DIR/$redir_json_file"
+fi
+}
+
+opt_arg()
+{
+if [ "$ssp_server_type" == "Custom" ] && [ "$confoptarg" != "" ]; then
+  echo " $confoptarg$(confile)"
+elif [ "$ssp_server_type" == "VMess" ]; then
+  echo " run -c$(confile)"
+else
+  echo " -c$(confile)"
 fi
 }
 
@@ -898,7 +898,7 @@ cat > "$quickstart" << EOF
 #!/bin/sh
 
 export SSL_CERT_FILE='/etc/storage/cacerts/cacert.pem'
-nohup $ssp_ubin$(opt_arg)$(confile)$(udp_ext) &>$ubin_log_file &
+nohup $ssp_ubin$(opt_arg)$(udp_ext) &>$ubin_log_file &
 EOF
 chmod +x $quickstart
 logger -st "SSP[$$]$bin_type" "启动代理进程" && $quickstart

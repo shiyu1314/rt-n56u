@@ -205,6 +205,10 @@ func_fill()
 	script_postf="$dir_storage/post_iptables_script.sh"
 	script_postw="$dir_storage/post_wan_script.sh"
 	script_inets="$dir_storage/inet_state_script.sh"
+	script_ineta="$dir_storage/detectinternet_1.sh"
+	script_inetb="$dir_storage/detectinternet_2.sh"
+	script_inetc="$dir_storage/detectinternet_3.sh"
+	script_inetd="$dir_storage/detectinternet_4.sh"
 	script_vpnsc="$dir_storage/vpns_client_script.sh"
 	script_vpncs="$dir_storage/vpnc_server_script.sh"
 	script_ezbtn="$dir_storage/ez_buttons_script.sh"
@@ -352,12 +356,80 @@ EOF
 ### Custom user script
 ### Called on Internet status changed
 ### \$1 - Internet status (0/1)
-### \$2 - elapsed time (s) from previous state
 
-logger -t "di" "Internet state: \$1, elapsed time: \$2s."
+logger -st "detect_internet" "Internet status: \$1"
 
 EOF
 		chmod 755 "$script_inets"
+	fi
+
+	# create inet-detectinternet script
+	if [ ! -f "$script_ineta" ] ; then
+		cat > "$script_ineta" <<EOF
+#!/bin/sh
+
+### detect_internet_script
+status_code=\$(nvram get di_status_code)
+user_agent=\$(nvram get di_user_agent)
+timeout=\$(nvram get di_timeout)
+domain=\$(nvram get di_domain_cn)
+
+curl "\$domain" -L -I -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code"
+
+EOF
+		chmod 755 "$script_ineta"
+	fi
+
+	if [ ! -f "$script_inetb" ] ; then
+		cat > "$script_inetb" <<EOF
+#!/bin/sh
+
+### detect_internet_script
+status_code=\$(nvram get di_status_code)
+user_agent=\$(nvram get di_user_agent)
+timeout=\$(nvram get di_timeout)
+domain=\$(nvram get di_domain_gb)
+
+curl "\$domain" -L -I -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code"
+
+EOF
+		chmod 755 "$script_inetb"
+	fi
+
+	if [ ! -f "$script_inetc" ] ; then
+		cat > "$script_inetc" <<EOF
+#!/bin/sh
+
+### detect_internet_script
+page_feature=\$(nvram get di_page_feature)
+user_agent=\$(nvram get di_user_agent)
+timeout=\$(nvram get di_timeout)
+domain=\$(nvram get di_domain_cn)
+
+curl "\$domain" -L -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature"
+
+EOF
+		chmod 755 "$script_inetc"
+	fi
+
+	if [ ! -f "$script_inetd" ] ; then
+		cat > "$script_inetd" <<EOF
+#!/bin/sh
+
+### detect_internet_script
+page_feature=\$(nvram get di_page_feature)
+user_agent=\$(nvram get di_user_agent)
+timeout=\$(nvram get di_timeout)
+domain=\$(nvram get di_domain_gb)
+
+curl "\$domain" -L -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature"
+
+EOF
+		chmod 755 "$script_inetd"
 	fi
 
 	# create vpn server action script

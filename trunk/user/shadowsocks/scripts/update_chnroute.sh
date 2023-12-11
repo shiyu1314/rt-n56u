@@ -8,7 +8,7 @@ CONF_DIR="/tmp/SSP"
 [ -n "$USBB_DIR" ] && EXTB_DIR="$USBB_DIR" || EXTB_DIR="$CONF_DIR"
 CHNROUTE_URL="$(nvram get chnroute_url)"
 APNIC_URL="http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest"
-user_agent="Mozilla/5.0 (X11; Linux; rv:74.0) Gecko/20100101 Firefox/74.0"
+user_agent=$(nvram get di_user_agent)
 
 (logger -st "SSP[$$]Update" "开始更新路由表..."
 [ -e $CONF_DIR/chnroute.txt ] && rm -rf $CONF_DIR/chnroute.txt

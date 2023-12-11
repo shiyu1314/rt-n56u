@@ -658,8 +658,6 @@ stop_lan(int is_ap_mode)
 	char *svcs[] = { "udhcpc", "detect_wan", NULL };
 
 	if (is_ap_mode) {
-		notify_pause_detect_internet();
-		
 		kill_services(svcs, 3, 1);
 	} else {
 		char *lan_ip = nvram_safe_get("lan_ipaddr_t");
@@ -886,8 +884,6 @@ lan_down_auto(char *lan_ifname)
 	FILE *fp;
 	char *lan_gateway = nvram_safe_get("lan_gateway_t");
 
-	notify_pause_detect_internet();
-
 	/* Remove default route to gateway if specified */
 	if (is_valid_ipv4(lan_gateway))
 		route_del(lan_ifname, 0, "0.0.0.0", lan_gateway, "0.0.0.0");
@@ -904,6 +900,9 @@ lan_down_auto(char *lan_ifname)
 	/* update SMB fastpath owner address */
 	config_smb_fastpath(1);
 #endif
+
+	/* di wakeup after 2 secs */
+	notify_run_detect_internet(2);
 }
 
 void 
