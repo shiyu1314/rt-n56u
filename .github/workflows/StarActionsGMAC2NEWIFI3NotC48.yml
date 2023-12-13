@@ -29,7 +29,7 @@ jobs:
           - build_variant: "GMAC2"
             targets: "NEWIFI3"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Prepare environment
         run: |
           sudo apt update
@@ -132,7 +132,7 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "y" "设置SSP代理基础程序"
           SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "y" "设置SSP代理Trojan可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSVMESS"                   "y" "设置SSP代理VMess可执行程序"
-          SP "CONFIG_FIRMWARE_INCLUDE_SSV2RP"                    "y" "设置SSP代理SS插件v2ray-plugin可执行程序"
+          SP "CONFIG_FIRMWARE_INCLUDE_SSV2RP"                    "n" "设置SSP代理SS插件v2ray-plugin可执行程序"
           ######################################################################################################
           SP "CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE"               "n" "设置OpenSSL可执行程序"
           ######################################################################################################

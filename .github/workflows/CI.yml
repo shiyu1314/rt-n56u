@@ -44,7 +44,7 @@ jobs:
           - build_variant: "MT7621+MT7603+MT7612-USB"
             targets: "B70 E8820V2 MI-R3G MSG1500 NEWIFI3 R6220 RT-AC1200GU WR1200JS ZTE_E8820S"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Prepare environment
         run: |
           sudo apt update
@@ -116,7 +116,7 @@ jobs:
           SP "CONFIG_FIRMWARE_ENABLE_FUSE"                       "n" "设置FUSE用户空间文件系统"
           SP "CONFIG_FIRMWARE_INCLUDE_LPRD"                      "n" "设置LPR打印"
           SP "CONFIG_FIRMWARE_INCLUDE_TCPDUMP"                   "n" "设置TCPdump网络抓包工具"
-          SP "CONFIG_FIRMWARE_INCLUDE_TTYD"                      "n" "设置ttyd网页版远程终端"
+          SP "CONFIG_FIRMWARE_INCLUDE_TTYD"                      "y" "设置ttyd网页版远程终端"
           SP "CONFIG_FIRMWARE_INCLUDE_LRZSZ"                     "n" "设置lrzsz文件传输工具"
           SP "CONFIG_FIRMWARE_INCLUDE_HTOP"                      "n" "设置Htop系统监控与进程管理"
           SP "CONFIG_FIRMWARE_INCLUDE_NANO"                      "n" "设置nano文本编辑器命令行工具"
