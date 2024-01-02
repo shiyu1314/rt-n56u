@@ -550,13 +550,13 @@ EOF
 	if [ ! -f "$sspcustomconf" ] ; then
 		cat > "$sspcustomconf" <<EOF
 ### Binaries name
-sspbinname=trojan
+sspbinname|trojan
 ### Options argument
-confoptarg=-c
+confoptarg|-c \$conffile
 ### Server addr
-serveraddr=example.com
+serveraddr|example.com
 ### Server port
-serverport=443
+serverport|443
 ### The complete configuration content of the node is written below
 {
     "run_type": "client",

@@ -40,7 +40,7 @@ quickstart="$CONF_DIR/quickstart"
 startrules="$CONF_DIR/startrules"
 internetcd="$CONF_DIR/internetcd"
 
-sspbinname=$(cat /etc/storage/ssp_custom.conf | grep '^sspbinname' | awk -F= '{print $2}')
+sspbinname=$(cat /etc/storage/ssp_custom.conf | grep '^sspbinname' | awk -F\| '{print $2}')
 autorec=$(nvram get ss_watchcat_autorec)
 ss_enable=$(nvram get ss_enable)
 ss_type=$(nvram get ss_type)
@@ -274,9 +274,9 @@ fi
 gen_json_file()
 {
 [ "$bin_type" == "Custom" ] || [ $nodesnum -ge 1 ] || $(stop_ssp "请到[节点设置]添加服务器" && return 1) || exit 1
-confoptarg=$(cat /etc/storage/ssp_custom.conf | grep '^confoptarg' | awk -F= '{print $2}')
-serveraddr=$(cat /etc/storage/ssp_custom.conf | grep '^serveraddr' | awk -F= '{print $2}')
-serverport=$(cat /etc/storage/ssp_custom.conf | grep '^serverport' | awk -F= '{print $2}')
+confoptarg=$(cat /etc/storage/ssp_custom.conf | grep '^confoptarg' | awk -F\| '{print $2}')
+serveraddr=$(cat /etc/storage/ssp_custom.conf | grep '^serveraddr' | awk -F\| '{print $2}')
+serverport=$(cat /etc/storage/ssp_custom.conf | grep '^serverport' | awk -F\| '{print $2}')
 turn_json_file || del_json_file
 [ "$autorec" == "1" ] && echo "1" > $areconnect || echo "0" > $areconnect
 if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
@@ -837,23 +837,23 @@ agent_pact()
 echo " -t"
 }
 
-confile()
+conffile()
 {
 if [ "$ssp_ubin" == "$local_bin" ]; then
-  echo " $CONF_DIR/$local_json_file"
+  echo "$CONF_DIR/$local_json_file"
 else
-  echo " $CONF_DIR/$redir_json_file"
+  echo "$CONF_DIR/$redir_json_file"
 fi
 }
 
 opt_arg()
 {
 if [ "$ssp_server_type" == "Custom" ] && [ "$confoptarg" != "" ]; then
-  echo " $confoptarg$(confile)"
+  echo " $confoptarg"
 elif [ "$ssp_server_type" == "VMess" ]; then
-  echo " run -c$(confile)"
+  echo " run -c $(conffile)"
 else
-  echo " -c$(confile)"
+  echo " -c $(conffile)"
 fi
 }
 
@@ -897,6 +897,7 @@ start_redir()
 cat > "$quickstart" << EOF
 #!/bin/sh
 
+conffile="$(conffile)"
 export SSL_CERT_FILE='/etc/storage/cacerts/cacert.pem'
 nohup $ssp_ubin$(opt_arg)$(udp_ext) &>$ubin_log_file &
 EOF
