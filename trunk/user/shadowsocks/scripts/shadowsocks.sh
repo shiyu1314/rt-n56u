@@ -793,7 +793,7 @@ if [ "$ss_mode" == "0" ]; then # global
 elif [ "$ss_mode" == "1" ]; then # chnroute
   echo " -c /etc/storage/chinadns/chnroute.txt"
 elif [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then # gfwlist
-  echo " -c /etc/storage/chinadns/chnroute.txt"
+  echo ""
 fi
 }
 
@@ -804,7 +804,7 @@ if [ "$ss_mode" == "0" ] || [ ! -e "$EXTB_DIR/CHNwhiteip.conf" ]; then # global 
 elif [ "$ss_mode" == "1" ]; then # chnroute
   echo " -e $EXTB_DIR/CHNwhiteip.conf"
 elif [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then # gfwlist
-  echo " -e $EXTB_DIR/CHNwhiteip.conf"
+  echo ""
 fi
 }
 
@@ -816,7 +816,7 @@ echo " -b $dnsfsmip"
 white_ip()
 {
 addchn=$(nvram get ss_custom_chnroute | sed 's/[[:space:]]/,/g')
-[ "$addchn" != "" ] && echo " -w $addchn" || echo ""
+[ "$ss_mode" == "1" ] && [ "$addchn" != "" ] && echo " -w $addchn" || echo ""
 }
 
 agent_mode()

@@ -36,11 +36,13 @@ return 0
 
 gen_ipset()
 {
+[ "$agent_mode" != "1" ] && chnhsize="64" || chnhsize="16384"
+[ "$agent_mode" != "1" ] && chnmelem="64" || chnmelem="1000000"
 ipset -! restore <<-EOF || return 1
   create servers hash:net hashsize 64 maxelem 256
   create private hash:net hashsize 64 maxelem 128
   create gfwlist hash:net hashsize 1024 maxelem 65536
-  create chnlist hash:net hashsize 16384 maxelem 1000000
+  create chnlist hash:net hashsize $chnhsize maxelem $chnmelem
   $(for privateaddr in $private_addr; do echo "add private $privateaddr"; done)
   $(for blackip in $black_ip; do echo "add gfwlist $blackip"; done)
   $(for whiteip in $white_ip; do echo "add chnlist $whiteip"; done)
@@ -54,7 +56,6 @@ ipt_nat()
 {
 echo "*nat" > $ipt_n
 echo ":SSP_AGENT - [0:0]" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo ":SSP_AUTOC - [0:0]" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo ":SSP_AUTOG - [0:0]" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo ":SSP_AUTOM - [0:0]" >> $ipt_n
 echo ":SSP_OUTPUT - [0:0]" >> $ipt_n
@@ -64,12 +65,12 @@ echo "-A PREROUTING -j SSP_PREROUTING" >> $ipt_n
 echo "-A OUTPUT -j SSP_OUTPUT" >> $ipt_n
 echo "-A SSP_AGENT -p tcp $connlimitsrc -j REDIRECT --to-ports $local_port" >> $ipt_n
 echo "-A SSP_AGENT -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOC -p tcp $connlimitsrc -m connlimit --connlimit-above $DR2 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOC -j RETURN" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_AUTOG -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR2 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_AUTOG -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-above $DR1 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR1 --connlimit-mask 32 --connlimit-daddr -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR2 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR4 --connlimit-mask 32 --connlimit-daddr -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-above $DR4 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
 echo "-A SSP_OUTPUT -p tcp -j SSP_RULES" >> $ipt_n
 echo "-A SSP_PREROUTING -p tcp -j SSP_RULES" >> $ipt_n
 echo "-A SSP_RULES -m state --state RELATED,ESTABLISHED -j RETURN" >> $ipt_n
@@ -78,7 +79,6 @@ echo "-A SSP_RULES -m set --match-set servers dst -j RETURN" >> $ipt_n
 [ "$serveraddr" == "0" ] || echo "-A SSP_RULES -d $serveraddr -j RETURN" >> $ipt_n
 [ "$agent_mode" == "1" ] && echo "-A SSP_RULES -m set --match-set chnlist dst -j RETURN" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_RULES -m set --match-set gfwlist dst -j SSP_AUTOG" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_RULES -m set --match-set chnlist dst -j SSP_AUTOC" >> $ipt_n
 [ "$agent_mode" != "2" ] && echo "-A SSP_RULES -j SSP_AGENT" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_RULES -j SSP_AUTOM" >> $ipt_n
 echo "COMMIT" >> $ipt_n && iptables-restore --noflush < $ipt_n && rm -rf $ipt_n || return 1
@@ -156,7 +156,7 @@ while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
       [ -z "$OPTARG" ] && usage 9
       agentmode_diversionrate="$OPTARG"
       agent_mode=${agentmode_diversionrate:0:1}
-      [ "$agent_mode" == "2" ] && diversion_rate=${agentmode_diversionrate:1:1} && DR1="$diversion_rate" && DR2=$(expr $DR1 \* 2)
+      [ "$agent_mode" == "2" ] && diversion_rate=${agentmode_diversionrate:1:1} && DR1="$diversion_rate" && DR2=$(expr $DR1 \* 2) && DR4=$(expr $DR1 \* 4)
       ;;
     t)
       flush_rules 2>/dev/null && gen_ipset && ipt_nat && ipt_filter
