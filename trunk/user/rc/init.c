@@ -463,8 +463,12 @@ init_sysctl(void)
 #if BOARD_RAM_SIZE < 512
 	fput_int("/proc/sys/vm/lowmem_reserve_ratio", 256);
 #endif
+#if BOARD_RAM_SIZE > 128
+	fput_int("/proc/sys/vm/overcommit_memory", 1);
+#else
 	fput_int("/proc/sys/vm/overcommit_memory", 2);
 	fput_int("/proc/sys/vm/overcommit_ratio", KERNEL_OVERCOMMIT_RATIO);
+#endif
 
 	fput_int("/proc/sys/net/core/somaxconn", KERNEL_NET_SOMAXCONN);
 	fput_int("/proc/sys/net/ipv4/tcp_max_syn_backlog", KERNEL_NET_SOMAXCONN);
