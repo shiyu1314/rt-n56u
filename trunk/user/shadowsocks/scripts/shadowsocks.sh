@@ -58,10 +58,13 @@ dnsfsmip=$(echo "$ss_dns_s" | awk -F: '{print $1}')
 dnstcpsp=$(echo "$ss_dns_s" | sed 's/:/~/g')
 
 dnsfslsp="127.0.0.1#$ss_dns_p"
+dnschndt="/etc/storage/chnlist/chnlist_domain.txt"
+dnschndp="$CONF_DIR/chnlist_domain.txt"
+dnschndm="$CONF_DIR/chnlist_domain.md5"
 dnsgfwdt="/etc/storage/gfwlist/gfwlist_domain.txt"
 dnsgfwdp="$CONF_DIR/gfwlist_domain.txt"
 dnsgfwdm="$CONF_DIR/gfwlist_domain.md5"
-dnsgfwdc="$CONF_DIR/gfwlist/dnsmasq.conf"
+dnslistc="$CONF_DIR/gfwlist/dnsmasq.conf"
 dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 
 [ "$ssp_type" == "0" ] && bin_type="SS"
@@ -118,6 +121,28 @@ stopp ss-rules
 logger -st "SSP[$$]$bin_type" "关闭透明代理" && ss-rules -f
 }
 
+custom_chnlist()
+{
+chndnum=$(cat $dnschndt | grep -v '^\.' | wc -l)
+chnfnum=${chndnum:0}
+cp -rf $dnschndt $dnschndp
+md5sum $dnschndp > $dnschndm
+sed -i '/^\./d' $dnschndp
+for addchn in $(nvram get ss_custom_chnlist | sed 's/,/ /g'); do
+  [ "$addchn" != "" ] && $(echo $addchn | grep -v -q '^\.') && echo ".$addchn" >> $dnschndp
+done
+md5sum -c -s $dnschndm
+[ "$?" != "0" ] && rm -rf $dnschndt && cp -rf $dnschndp $dnschndt
+rm -rf $dnschndp && rm -rf $dnschndm
+if [ $(cat $dnschndt | wc -l) -ge $chnfnum ]; then
+  return 0
+else
+  logger -st "SSP[$$]WARNING" "自定义白名单域名发生错误!恢复默认白名单域名"
+  rm -rf $dnschndt && tar jxf /etc_ro/chnlist.bz2 -C /etc/storage/chnlist
+  return 0
+fi
+}
+
 custom_gfwlist()
 {
 gfwdnum=$(cat $dnsgfwdt | grep -v '^\.' | wc -l)
@@ -147,20 +172,24 @@ sed -i 's/^### gfwlist related.*/### gfwlist related resolve/g' $dnsmasqc
 sed -i 's/^min-cache-ttl=/#min-cache-ttl=/g' $dnsmasqc
 sed -i 's/^conf-dir=/#conf-dir=/g' $dnsmasqc
 sed -i 's:^gfwlist='$dnsgfwdt':#gfwlist='$dnsgfwdt':g' $dnsmasqc
-rm -rf $dnsgfwdc
+rm -rf $dnslistc
 rm -rf $dnscqstart
 stopp dns-forwarder
+custom_chnlist
 custom_gfwlist
 }
 
 get_dns_conf()
 {
-[ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("server=/%s/'$dnsfslsp'\n", $1, $1 )}' >> $dnsgfwdc
-[ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnsgfwdc
-[ -e "$CONF_DIR/Serveraddr-noip" ] && cat $CONF_DIR/Serveraddr-noip | awk '{printf("ipset=/%s/servers\n", $1, $1 )}' >> $dnsgfwdc
+[ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("server=/%s/'$dnsfslsp'\n", $1, $1 )}' >> $dnslistc
+if [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then
+  [ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnslistc
+  grep -v '^#' $dnschndt | grep -v '^$' | awk '{printf("ipset=/%s/chnlist\n", $1, $1 )}' >> $dnslistc
+fi
+[ -e "$CONF_DIR/Serveraddr-noip" ] && cat $CONF_DIR/Serveraddr-noip | awk '{printf("ipset=/%s/servers\n", $1, $1 )}' >> $dnslistc
 sed -i 's/^### gfwlist related.*/### gfwlist related resolve by '$1' '$2'/g' $dnsmasqc
 sed -i 's/^#min-cache-ttl=/min-cache-ttl=/g' $dnsmasqc
-[ -e "$dnsgfwdc" ] && sed -i 's/^#conf-dir=/conf-dir=/g' $dnsmasqc
+[ -e "$dnslistc" ] && sed -i 's/^#conf-dir=/conf-dir=/g' $dnsmasqc
 [ "$1" == "dnsmasq-tcp" ] && sed -i 's:^#gfwlist='$dnsgfwdt'.*:gfwlist='$dnsgfwdt'@'$dnstcpsp':g' $dnsmasqc
 return 0
 }

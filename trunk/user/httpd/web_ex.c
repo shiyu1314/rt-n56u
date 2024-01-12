@@ -2021,6 +2021,9 @@ static int shadowsocks_action_hook(int eid, webs_t wp, int argc, char **argv)
 		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
 		doSystem("echo %s > %s", "1", "/tmp/SSP/startrules");
 		needed_seconds = 1;
+	} else if (!strcmp(ss_action, "Update_chnlist")) {
+		notify_rc(RCN_RESTART_CHNLIST_UPD);
+		needed_seconds = 1;
 	} else if (!strcmp(ss_action, "Update_gfwlist")) {
 		notify_rc(RCN_RESTART_GFWLIST_UPD);
 		needed_seconds = 1;
@@ -2049,74 +2052,72 @@ static int rules_count_hook(int eid, webs_t wp, int argc, char **argv)
 {
 	FILE *fstream = NULL;
 	char count[8];
-	char Loadc[8];
-	if (pids("ss-redir") || pids("ss-local")) {
-		memset(count, 0, sizeof(count));
-		fstream = popen("cat /etc/storage/chinadns/chnroute.txt |wc -l","r");
-		if(fstream) {
-			fgets(count, sizeof(count), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(count, "%d", 0);
-		}
-		if (strlen(count) > 0)
-			count[strlen(count) - 1] = 0;
-		memset(Loadc, 0, sizeof(Loadc));
-		fstream = popen("ipset list chnlist |grep 'Number of entries' |awk '{print $4}'","r");
-		if(fstream) {
-			fgets(Loadc, sizeof(Loadc), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(Loadc, "%d", 0);
-		}
-		if (strlen(Loadc) > 0)
-			Loadc[strlen(Loadc) - 1] = 0;
-		websWrite(wp, "function chnroute_count() { return '%s:%s';}\n", count, Loadc);
-		memset(count, 0, sizeof(count));
-		fstream = popen("cat /etc/storage/gfwlist/gfwlist_domain.txt |wc -l","r");
-		if(fstream) {
-			fgets(count, sizeof(count), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(count, "%d", 0);
-		}
-		if (strlen(count) > 0)
-			count[strlen(count) - 1] = 0;
-		memset(Loadc, 0, sizeof(Loadc));
-		fstream = popen("ipset list gfwlist |grep 'Number of entries' |awk '{print $4}'","r");
-		if(fstream) {
-			fgets(Loadc, sizeof(Loadc), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(Loadc, "%d", 0);
-		}
-		if (strlen(Loadc) > 0)
-			Loadc[strlen(Loadc) - 1] = 0;
-		websWrite(wp, "function gfwlist_count() { return '%s:%s';}\n", count, Loadc);	
-	} else {
-		memset(count, 0, sizeof(count));
-		fstream = popen("cat /etc/storage/chinadns/chnroute.txt |wc -l","r");
-		if(fstream) {
-			fgets(count, sizeof(count), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(count, "%d", 0);
-		}
-		if (strlen(count) > 0)
-			count[strlen(count) - 1] = 0;
-		websWrite(wp, "function chnroute_count() { return '%s';}\n", count);
-		memset(count, 0, sizeof(count));
-		fstream = popen("cat /etc/storage/gfwlist/gfwlist_domain.txt |wc -l","r");
-		if(fstream) {
-			fgets(count, sizeof(count), fstream);
-			pclose(fstream);
-		} else {
-			sprintf(count, "%d", 0);
-		}
-		if (strlen(count) > 0)
-			count[strlen(count) - 1] = 0;
-		websWrite(wp, "function gfwlist_count() { return '%s';}\n", count);	
+
+	//chnroute_count
+	memset(count, 0, sizeof(count));
+	fstream = popen("cat /etc/storage/chinadns/chnroute.txt |wc -l","r");
+	if(fstream) {
+		fgets(count, sizeof(count), fstream);
+		pclose(fstream);
 	}
+	if (strlen(count) > 0)
+		count[strlen(count) - 1] = 0;
+	else
+		sprintf(count, "%d", 0);
+	websWrite(wp, "function chnroute_count() { return '%s';}\n", count);
+
+	//chnlist_count
+	memset(count, 0, sizeof(count));
+	fstream = popen("cat /etc/storage/chnlist/chnlist_domain.txt |wc -l","r");
+	if(fstream) {
+		fgets(count, sizeof(count), fstream);
+		pclose(fstream);
+	}
+	if (strlen(count) > 0)
+		count[strlen(count) - 1] = 0;
+	else
+		sprintf(count, "%d", 0);
+	websWrite(wp, "function chnlist_count() { return '%s';}\n", count);
+
+	//gfwlist_count
+	memset(count, 0, sizeof(count));
+	fstream = popen("cat /etc/storage/gfwlist/gfwlist_domain.txt |wc -l","r");
+	if(fstream) {
+		fgets(count, sizeof(count), fstream);
+		pclose(fstream);
+	}
+	if (strlen(count) > 0)
+		count[strlen(count) - 1] = 0;
+	else
+		sprintf(count, "%d", 0);
+	websWrite(wp, "function gfwlist_count() { return '%s';}\n", count);
+
+	//chn_loadc
+	memset(count, 0, sizeof(count));
+	fstream = popen("ipset list chnlist |grep 'Number of entries' |awk '{print $4}'","r");
+	if(fstream) {
+		fgets(count, sizeof(count), fstream);
+		pclose(fstream);
+	}
+	if (strlen(count) > 0)
+		count[strlen(count) - 1] = 0;
+	else
+		sprintf(count, "%d", 0);
+	websWrite(wp, "function chn_loadc() { return '%s';}\n", count);
+
+	//gfw_loadc
+	memset(count, 0, sizeof(count));
+	fstream = popen("ipset list gfwlist |grep 'Number of entries' |awk '{print $4}'","r");
+	if(fstream) {
+		fgets(count, sizeof(count), fstream);
+		pclose(fstream);
+	}
+	if (strlen(count) > 0)
+		count[strlen(count) - 1] = 0;
+	else
+		sprintf(count, "%d", 0);
+	websWrite(wp, "function gfw_loadc() { return '%s';}\n", count);
+
 	return 0;
 }
 #endif

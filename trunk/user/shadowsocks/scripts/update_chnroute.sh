@@ -27,8 +27,7 @@ if [ ! -e $EXTB_DIR/chnroute.txt ]; then
 	[ -e $EXTB_DIR/chnroute.old ] && mv -f $EXTB_DIR/chnroute.old $EXTB_DIR/chnroute.txt
 	logger -st "SSP[$$]Update" "路由表更新失败" && exit 0
 fi
-sed -i '/^#/d' $EXTB_DIR/chnroute.txt && sed -i '/^$/d' $EXTB_DIR/chnroute.txt && \
-echo "" >> $EXTB_DIR/chnroute.txt
+sed -i '/^#/d' $EXTB_DIR/chnroute.txt && sed -i '/^$/d' $EXTB_DIR/chnroute.txt
 [ ! -d /etc/storage/chinadns/ ] && mkdir /etc/storage/chinadns/
 if [ $(cat $EXTB_DIR/chnroute.txt | wc -l) -le 65536 ]; then
 	mv -f $EXTB_DIR/chnroute.txt /etc/storage/chinadns/chnroute.txt

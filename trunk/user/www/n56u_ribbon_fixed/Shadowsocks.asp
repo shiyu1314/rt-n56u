@@ -38,6 +38,9 @@ $j(document).ready(function(){
 	init_itoggle('ss_update_chnroute');
 	init_itoggle('chnroute_url');
 	init_itoggle('ss_custom_chnroute');
+	init_itoggle('ss_update_chnlist');
+	init_itoggle('chnlist_url');
+	init_itoggle('ss_custom_chnlist');
 	init_itoggle('ss_update_gfwlist');
 	init_itoggle('gfwlist_url');
 	init_itoggle('ss_custom_gfwlist');
@@ -55,7 +58,10 @@ function initial(){
 	fill_ss_forwarder_status(forwarder_status());
 	fill_ss_ipt2socks_status(ipt2socks_status());
 	$("chnroute_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + chnroute_count() ;
+	$("chnlist_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + chnlist_count() ;
 	$("gfwlist_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + gfwlist_count() ;
+	$("chn_loadc").innerHTML = '<#menu5_16_Direct#>&nbsp;&nbsp;' + chn_loadc() ;
+	$("gfw_loadc").innerHTML = '<#menu5_16_Proxy#>&nbsp;&nbsp;' + gfw_loadc() ;
 }
 
 function change_ss_type(){
@@ -206,8 +212,8 @@ function fill_ss_ipt2socks_status(status_code){
                                                 <select name="ss_mode" class="input" style="width: 228px">
                                                     <option value="0" <% nvram_match_x("","ss_mode", "0", "selected"); %>><#menu5_16_GlobalProxy#></option>
                                                     <option value="1" <% nvram_match_x("","ss_mode", "1", "selected"); %>><#menu5_16_CountryRouting#></option>
-                                                    <option value="21" <% nvram_match_x("","ss_mode", "21", "selected"); %>><#menu5_16_GfwlistDomains#><#menu5_16_DiversionKeen#></option>
-                                                    <option value="22" <% nvram_match_x("","ss_mode", "22", "selected"); %>><#menu5_16_GfwlistDomains#><#menu5_16_DiversionTrue#></option>
+                                                    <option value="21" <% nvram_match_x("","ss_mode", "21", "selected"); %>><#menu5_16_GfwlistChnlist#>&nbsp;&nbsp;<#menu5_16_DiversionKeen#></option>
+                                                    <option value="22" <% nvram_match_x("","ss_mode", "22", "selected"); %>><#menu5_16_GfwlistChnlist#>&nbsp;&nbsp;<#menu5_16_DiversionTrue#></option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -233,7 +239,13 @@ function fill_ss_ipt2socks_status(status_code){
 
                                         <tr> <th colspan="6" style="background-color: #E3E3E3;"><#menu5_16_ParsingSettings#></th> </tr>
 
-                                        <tr> <th colspan="4"><#menu5_16_EnableDNSForwarder#></th>
+                                        <tr>
+                                            <th colspan="3" style="white-space: nowrap;">
+                                                <#menu5_16_NumberOfRulesLoaded#>
+                                                <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="chn_loadc"></span>
+                                                <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="gfw_loadc"></span>
+                                            </th>
+                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_EnableDNSForwarder#></th>
                                             <td colspan="1">
                                                 <div class="main_itoggle">
                                                 <div id="dns_forwarder_enable_on_of">
@@ -299,6 +311,44 @@ function fill_ss_ipt2socks_status(status_code){
 
                                         <tr> 
                                             <th colspan="4" style="white-space: nowrap;">
+                                                <a href="javascript:spoiler_toggle('spoiler_chnlist_url')"><#menu5_16_AutoUpdate#></a>
+                                                <a href="javascript:spoiler_toggle('spoiler_custom_chnlist')"><#menu5_16_ChnlistDomains#></a>
+                                                <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="chnlist_count"></span>
+                                            </th>
+                                            <td colspan="1">
+                                                <div class="main_itoggle">
+                                                    <div id="ss_update_chnlist_on_of">
+                                                        <input type="checkbox" id="ss_update_chnlist_fake" <% nvram_match_x("", "ss_update_chnlist", "1", "value=1 checked"); %><% nvram_match_x("", "ss_update_chnlist", "0", "value=0"); %>>
+                                                    </div>
+                                                </div>
+                                                <div style="position: absolute; margin-left: -10000px;">
+                                                    <input type="radio" value="1" name="ss_update_chnlist" id="ss_update_chnlist_1" <% nvram_match_x("", "ss_update_chnlist", "1", "checked"); %>><#checkbox_Yes#>
+                                                    <input type="radio" value="0" name="ss_update_chnlist" id="ss_update_chnlist_0" <% nvram_match_x("", "ss_update_chnlist", "0", "checked"); %>><#checkbox_No#>
+                                                </div>
+                                            </td>
+                                            <td colspan="1">
+                                                <input type="button" id="btn_connect_3" class="btn btn-info" value="<#menu5_16_UpdateNow#>" onclick="submitInternet('Update_chnlist');">
+                                            </td>
+                                        </tr>
+
+                                        <tr id="spoiler_chnlist_url" style="display:none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
+                                                <div>
+                                                    <input type="text" maxlength="90" class="input" size="90" name="chnlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLChnDomainList#>" value="<% nvram_get_x("","chnlist_url"); %>">
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr id="spoiler_custom_chnlist" style="display:none;">
+                                            <td colspan="6" style="text-align: center; border-top: 0 none;">
+                                                <div>
+                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_chnlist" style="width: 654px" placeholder="<#menu5_16_AddChnDomains#>" value="<% nvram_get_x("","ss_custom_chnlist"); %>">
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <tr> 
+                                            <th colspan="4" style="white-space: nowrap;">
                                                 <a href="javascript:spoiler_toggle('spoiler_gfwlist_url')"><#menu5_16_AutoUpdate#></a>
                                                 <a href="javascript:spoiler_toggle('spoiler_custom_gfwlist')"><#menu5_16_GfwlistDomains#></a>
                                                 <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="gfwlist_count"></span>
@@ -315,14 +365,14 @@ function fill_ss_ipt2socks_status(status_code){
                                                 </div>
                                             </td>
                                             <td colspan="1">
-                                                <input type="button" id="btn_connect_3" class="btn btn-info" value="<#menu5_16_UpdateNow#>" onclick="submitInternet('Update_gfwlist');">
+                                                <input type="button" id="btn_connect_4" class="btn btn-info" value="<#menu5_16_UpdateNow#>" onclick="submitInternet('Update_gfwlist');">
                                             </td>
                                         </tr>
 
                                         <tr id="spoiler_gfwlist_url" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURDomainList#>" value="<% nvram_get_x("","gfwlist_url"); %>">
+                                                    <input type="text" maxlength="90" class="input" size="90" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLGfwDomainList#>" value="<% nvram_get_x("","gfwlist_url"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -330,7 +380,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_custom_gfwlist" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_AddGfwlistDomains#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
+                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_AddGfwDomains#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
                                                 </div>
                                             </td>
                                         </tr>

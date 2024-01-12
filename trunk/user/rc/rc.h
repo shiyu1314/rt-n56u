@@ -563,6 +563,7 @@ void stop_ss(void);
 void start_ss(void);
 void restart_ss(void);
 void update_chnroute(void);
+void update_chnlist(void);
 void update_gfwlist(void);
 #endif
 #if defined(APP_VLMCSD)

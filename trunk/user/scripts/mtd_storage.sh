@@ -196,6 +196,7 @@ func_fill()
 	dir_crond="$dir_storage/cron/crontabs"
 	dir_wlan="$dir_storage/wlan"
 	dir_chnroute="$dir_storage/chinadns"
+	dir_chnlist="$dir_storage/chnlist"
 	dir_gfwlist="$dir_storage/gfwlist"
 	dir_cacerts="$dir_storage/cacerts"
 
@@ -226,6 +227,7 @@ func_fill()
 	user_sswan_secrets="$dir_sswan/ipsec.secrets"
 
 	chnroute_file="/etc_ro/chnroute.bz2"
+	chnlist_file="/etc_ro/chnlist.bz2"
 	gfwlist_file="/etc_ro/gfwlist.bz2"
 	cacerts_file="/etc_ro/cacerts.bz2"
 
@@ -242,16 +244,23 @@ func_fill()
 		fi
 	fi
 
+	# create chnlist
+	if [ ! -d "$dir_chnlist" ] ; then
+		if [ -f "$chnlist_file" ]; then
+			mkdir -p "$dir_chnlist" && tar jxf "$chnlist_file" -C "$dir_chnlist"
+		fi
+	fi
+
 	# create gfwlist
 	if [ ! -d "$dir_gfwlist" ] ; then
-		if [ -f "$gfwlist_file" ]; then	
+		if [ -f "$gfwlist_file" ]; then
 			mkdir -p "$dir_gfwlist" && tar jxf "$gfwlist_file" -C "$dir_gfwlist"
 		fi
 	fi
 
 	# create cacerts
 	if [ ! -d "$dir_cacerts" ] ; then
-		if [ -f "$cacerts_file" ]; then	
+		if [ -f "$cacerts_file" ]; then
 			mkdir -p "$dir_cacerts" && tar jxf "$cacerts_file" -C "$dir_cacerts"
 		fi
 	fi

@@ -66,6 +66,7 @@
 #define RCN_RESTART_VLMCSD		"restart_vlmcsd"
 #define RCN_RESTART_SHADOWSOCKS	"restart_shadowsocks"
 #define RCN_RESTART_CHNROUTE_UPD	"restart_chnroute_upd"
+#define RCN_RESTART_CHNLIST_UPD		"restart_chnlist_upd"
 #define RCN_RESTART_GFWLIST_UPD		"restart_gfwlist_upd"
 #define RCN_RESTART_REBOOT		"restart_reboot"
 

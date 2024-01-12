@@ -950,8 +950,9 @@ init_crontab(void)
 	ret |= system("/sbin/check_crontab.sh a/1 a a a a scutclient_watchcat.sh");
 #endif
 #if defined (APP_SHADOWSOCKS)
-	ret |= system("/sbin/check_crontab.sh 0 8 a/10 a a update_chnroute.sh");
-	ret |= system("/sbin/check_crontab.sh 0 7 a/10 a a update_gfwlist.sh");
+	ret |= system("/sbin/check_crontab.sh 9 4 a a 4 update_chnroute.sh");
+	ret |= system("/sbin/check_crontab.sh 5 4 a a 4 update_chnlist.sh");
+	ret |= system("/sbin/check_crontab.sh 1 4 a a 4 update_gfwlist.sh");
 	ret |= system("/sbin/check_crontab.sh a/1 a a a a ss-watchcat.sh");
 #endif
 	return ret;
@@ -1624,6 +1625,10 @@ handle_notifications(void)
 		else if (strcmp(entry->d_name, RCN_RESTART_CHNROUTE_UPD) == 0)
 		{
 			update_chnroute();
+		}
+		else if (strcmp(entry->d_name, RCN_RESTART_CHNLIST_UPD) == 0)
+		{
+			update_chnlist();
 		}
 		else if (strcmp(entry->d_name, RCN_RESTART_GFWLIST_UPD) == 0)
 		{

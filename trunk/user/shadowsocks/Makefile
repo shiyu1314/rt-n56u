@@ -17,12 +17,16 @@ CACERT_DIR=cacerts
 CHNROUTE_DIR=chnroute
 CHNROUTE_URL=http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest
 
+CHNLIST_NAME=chnlist_domain.txt
+CHNLIST_URL=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf
+CHNLIST_DIR=chnlist
+
 GFWLIST_NAME=gfwlist_domain.txt
 GFWLIST_PURL=https://cokebar.github.io/gfwlist2dnsmasq
 GFWLIST_URL=$(GFWLIST_PURL)/$(GFWLIST_NAME)
 GFWLIST_DIR=gfwlist
 
-all: cacert_dl chnroute_dl gfwlist_dl extract_test config_test
+all: cacert_dl chnroute_dl chnlist_dl gfwlist_dl extract_test config_test
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	$(MAKE) -j$(HOST_NCPU) -C $(SRC_SSR_NAME)
 	$(MAKE) -j$(HOST_NCPU) -C $(SRC_IPT_NAME) CC="$(CC)"
@@ -41,13 +45,26 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 endif
 
 chnroute_dl:
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	( if [ ! -d $(CHNROUTE_DIR) ];then \
 		mkdir -p $(CHNROUTE_DIR) && cd $(CHNROUTE_DIR) && \
 		wget -t8 -4 --timeout=8 -U Mozilla -O route.txt.tmp '$(CHNROUTE_URL)' && sed -i '/\*/d' route.txt.tmp && \
 		awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $$4, 32-log($$5)/log(2)) }' < route.txt.tmp > chnroute.txt && \
-		rm -f route.txt.tmp && \
-		tar jcf chnroute.bz2 chnroute.txt ;\
+		rm -f route.txt.tmp && tar jcf chnroute.bz2 chnroute.txt ; \
 	fi )
+endif
+
+chnlist_dl:
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
+	( if [ ! -d $(CHNLIST_DIR) ];then \
+		mkdir -p $(CHNLIST_DIR) && cd $(CHNLIST_DIR) && \
+		wget -t8 -4 --timeout=8 -O chnlist.txt.tmp --no-check-certificate '$(CHNLIST_URL)' && \
+		awk -F/ '{print $2}' < chnlist.txt.tmp > $(CHNLIST_NAME) && \
+		rm -f chnlist.txt.tmp && tar jcf chnlist.bz2 $(CHNLIST_NAME) ; \
+	else \
+		cd $(CHNLIST_DIR) && tar jcf chnlist.bz2 $(CHNLIST_NAME); \
+	fi )
+endif
 
 gfwlist_dl:
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
@@ -162,8 +179,10 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	$(ROMFSINST) $(THISDIR)/scripts/ss-rules /usr/bin/ss-rules
 	$(ROMFSINST) $(THISDIR)/scripts/ss-watchcat.sh /usr/bin/ss-watchcat.sh
 	$(ROMFSINST) $(THISDIR)/scripts/update_gfwlist.sh /usr/bin/update_gfwlist.sh
+	$(ROMFSINST) $(THISDIR)/scripts/update_chnlist.sh /usr/bin/update_chnlist.sh
 	$(ROMFSINST) $(THISDIR)/scripts/update_chnroute.sh /usr/bin/update_chnroute.sh
 	$(ROMFSINST) $(THISDIR)/gfwlist/gfwlist.bz2 /etc_ro/gfwlist.bz2
+	$(ROMFSINST) $(THISDIR)/chnlist/chnlist.bz2 /etc_ro/chnlist.bz2
 	$(ROMFSINST) $(THISDIR)/chnroute/chnroute.bz2 /etc_ro/chnroute.bz2
 	$(ROMFSINST) $(THISDIR)/cacerts/cacerts.bz2 /etc_ro/cacerts.bz2
 	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_IPT_NAME)/ipt2socks /usr/bin/ipt2socks

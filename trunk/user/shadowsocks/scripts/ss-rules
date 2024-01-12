@@ -36,8 +36,8 @@ return 0
 
 gen_ipset()
 {
-[ "$agent_mode" != "1" ] && chnhsize="64" || chnhsize="16384"
-[ "$agent_mode" != "1" ] && chnmelem="64" || chnmelem="1000000"
+[ "$agent_mode" == "0" ] && chnhsize="64" || chnhsize="16384"
+[ "$agent_mode" == "0" ] && chnmelem="64" || chnmelem="1000000"
 ipset -! restore <<-EOF || return 1
   create servers hash:net hashsize 64 maxelem 256
   create private hash:net hashsize 64 maxelem 128
@@ -77,8 +77,8 @@ echo "-A SSP_RULES -m state --state RELATED,ESTABLISHED -j RETURN" >> $ipt_n
 echo "-A SSP_RULES -m set --match-set private dst -j RETURN" >> $ipt_n
 echo "-A SSP_RULES -m set --match-set servers dst -j RETURN" >> $ipt_n
 [ "$serveraddr" == "0" ] || echo "-A SSP_RULES -d $serveraddr -j RETURN" >> $ipt_n
-[ "$agent_mode" == "1" ] && echo "-A SSP_RULES -m set --match-set chnlist dst -j RETURN" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_RULES -m set --match-set gfwlist dst -j SSP_AUTOG" >> $ipt_n
+[ "$agent_mode" != "0" ] && echo "-A SSP_RULES -m set --match-set chnlist dst -j RETURN" >> $ipt_n
 [ "$agent_mode" != "2" ] && echo "-A SSP_RULES -j SSP_AGENT" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_RULES -j SSP_AUTOM" >> $ipt_n
 echo "COMMIT" >> $ipt_n && iptables-restore --noflush < $ipt_n && rm -rf $ipt_n || return 1

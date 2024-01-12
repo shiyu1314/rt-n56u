@@ -334,6 +334,10 @@ void update_chnroute(void){
 	eval("/bin/sh","-c","/usr/bin/update_chnroute.sh force &");
 }
 
+void update_chnlist(void){
+	eval("/bin/sh","-c","/usr/bin/update_chnlist.sh force &");
+}
+
 void update_gfwlist(void){
 	eval("/bin/sh","-c","/usr/bin/update_gfwlist.sh force &");
 }

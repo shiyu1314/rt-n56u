@@ -568,6 +568,9 @@ struct nvram_pair router_defaults[] = {
 	{ "ss_update_gfwlist", "0" },
 	{ "gfwlist_url", "" },
 	{ "ss_custom_gfwlist", "" },
+	{ "ss_update_chnlist", "0" },
+	{ "chnlist_url", "" },
+	{ "ss_custom_chnlist", "" },
 
 	{ "ss_dns_local_port", "60" },
 	{ "ss_dns_remote_server", "8.8.4.4:53" },
