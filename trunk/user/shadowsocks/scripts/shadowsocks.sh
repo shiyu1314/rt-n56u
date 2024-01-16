@@ -839,13 +839,13 @@ fi
 
 black_ip()
 {
-echo " -b $dnsfsmip"
+[ "$ss_mode" != "0" ] && echo " -b $dnsfsmip" || echo ""
 }
 
 white_ip()
 {
 addchn=$(nvram get ss_custom_chnroute | sed 's/[[:space:]]/,/g')
-[ "$ss_mode" == "1" ] && [ "$addchn" != "" ] && echo " -w $addchn" || echo ""
+[ "$ss_mode" != "0" ] && [ "$addchn" != "" ] && echo " -w $addchn" || echo ""
 }
 
 agent_mode()
