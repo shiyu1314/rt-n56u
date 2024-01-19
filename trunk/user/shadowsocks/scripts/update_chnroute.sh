@@ -23,7 +23,7 @@ fi)&
 
 wait
 
-if [ ! -e $EXTB_DIR/chnroute.txt ]; then
+if [ ! -e $EXTB_DIR/chnroute.txt ] || [ ! -s $EXTB_DIR/chnroute.txt ]; then
 	[ -e $EXTB_DIR/chnroute.old ] && mv -f $EXTB_DIR/chnroute.old $EXTB_DIR/chnroute.txt
 	logger -st "SSP[$$]Update" "路由表更新失败" && exit 0
 fi
@@ -39,8 +39,8 @@ else
 	[ "$EXTB_DIR" == "$CONF_DIR" ] && logger -st "SSP[$$]Update" "保留在临时目录"
 	[ "$EXTB_DIR" == "$USBB_DIR" ] && logger -st "SSP[$$]Update" "保存到外部存储"
 fi
-[ "$(nvram get ss_enable)" == "1" ] && echo "1" > $CONF_DIR/startrules && \
-/usr/bin/shadowsocks.sh restart &>/dev/null
+[ "$(nvram get ss_enable)" == "1" ] && [ "$(nvram get ss_mode)" == "1" ] && \
+echo "1" > $CONF_DIR/startrules && /usr/bin/shadowsocks.sh restart &>/dev/null
 
 logger -st "SSP[$$]Update" "路由表更新完成"
 

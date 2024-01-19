@@ -37,6 +37,7 @@
 1e100.net
 1eew.com
 1mobile.com
+1mobile.tw
 1pondo.tv
 2-hand.info
 2000fun.com
@@ -80,7 +81,7 @@
 4pu.com
 4rbtv.com
 4shared.com
-50.7.31.230:8898
+4sqi.net
 51.ca
 51jav.org
 51luoben.com
@@ -207,6 +208,7 @@ ait.org.tw
 aiweiwei.com
 aiweiweiblog.com
 akademiye.org
+akamaihd.net
 akiba-online.com
 akiba-web.com
 akow.org
@@ -423,6 +425,7 @@ axureformac.com
 azerbaycan.tv
 azerimix.com
 azubu.tv
+azurewebsites.net
 b-ok.cc
 b0ne.com
 babylonbee.com
@@ -434,6 +437,7 @@ bad.news
 badiucao.com
 badjojo.com
 badoo.com
+bahamut.com.tw
 baidu.jp
 baijie.org
 bailandaily.com
@@ -2512,6 +2516,7 @@ hybrid-analysis.com
 hyperrate.com
 i-cable.com
 i-part.com.tw
+i-scmp.com
 i.lithium.com
 i1.hk
 i2p2.de
@@ -3827,8 +3832,10 @@ picacomic.com
 picacomiccn.com
 picasaweb.com
 picidae.net
+picturedip.com
 pictures.playboy.com
 picturesocial.com
+pimg.tw
 pin-cong.com
 pin6.com
 pincong.rocks
@@ -4195,6 +4202,7 @@ s1heng.com
 s1s1s1.com
 s3-ap-northeast-1.amazonaws.com
 s3-ap-southeast-2.amazonaws.com
+s3.amazonaws.com
 s8forum.com
 sa.hao123.com
 sacks.com
@@ -4246,6 +4254,7 @@ scribd.com
 scriptspot.com
 search.aol.com
 search.com
+search.xxx
 search.yahoo.co.jp
 search.yahoo.com
 searchtruth.com
@@ -4291,6 +4300,7 @@ sexidude.com
 sexinsex.net
 sextvx.com
 sexxxy.biz
+sf.net
 sfileydy.com
 sfshibao.com
 sftindia.org
@@ -5173,6 +5183,7 @@ ubddns.org
 uberproxy.net
 uc-japan.org
 ucdc1998.org
+uchicago.edu
 uderzo.it
 udn.com
 udn.com.tw
@@ -5693,6 +5704,7 @@ xbtce.com
 xcafe.in
 xcity.jp
 xcritic.com
+xda-developers.com
 xerotica.com
 xfinity.com
 xfm.pp.ru

@@ -11,27 +11,25 @@ rm -f /tmp/gfwlist_domain.txt
 curl -k -s --connect-timeout 5 --retry 3 \
 ${GFWLIST_URL:-"https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"} | \
 base64 -d | \
-sed -n '{
-s/^||\?//g;
-s/https\?:\/\///g;
+sed -n -r '{
+/^\[/d;
+/^!/d;
+/^@@/d;
+s/^\|https?:\/\///g;
+s/^\|\|//g;
+s/\/.*$//g;
+s/%.*$//g;
+s/^[0-9a-zA-Z]{0,128}\*[0-9a-zA-Z]{0,128}\.//g;
+s/\*.*$//g;
 s/^\.//g;
-s/\*.*//g;
-s/\/.*//g;
-s/%.*//g;
-/^!.*/d;
-/^@.*/d;
-/^\[.*/d;
-/\.$/d;
-/^[^\.]*$/d;
-/^[0-9\.]*$/d;
-/^$/d;
-/^#.*/d;
+s/\.$//g;
+/([0-9]{1,3}\.){3}[0-9]{1,3}/d;
+/.*\..*/!d;
 p
-}' | sort -u >> /tmp/gfwlist_domain.txt
+}' | sort -u > /tmp/gfwlist_domain.txt
 
 [ ! -d /etc/storage/gfwlist/ ] && mkdir /etc/storage/gfwlist/
-mv -f /tmp/gfwlist_domain.txt /etc/storage/gfwlist/gfwlist_domain.txt
-
+[ -s /tmp/gfwlist_domain.txt ] && mv -f /tmp/gfwlist_domain.txt /etc/storage/gfwlist/gfwlist_domain.txt && \
 mtd_storage.sh save >/dev/null 2>&1
 
 [ "$(nvram get ss_enable)" == "1" ] && /usr/bin/shadowsocks.sh rednsconf &>/dev/null
