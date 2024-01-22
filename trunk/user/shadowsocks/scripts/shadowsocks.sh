@@ -151,7 +151,8 @@ cp -rf $dnsgfwdt $dnsgfwdp
 md5sum $dnsgfwdp > $dnsgfwdm
 sed -i '/^\./d' $dnsgfwdp
 for addgfw in $(nvram get ss_custom_gfwlist | sed 's/,/ /g'); do
-  [ "$addgfw" != "" ] && $(echo $addgfw | grep -v -q '^\.') && echo ".$addgfw" >> $dnsgfwdp
+  gfwdomain=$(echo $addgfw | grep -v '^\.' | grep -v '^#')
+  [ "$gfwdomain" != "" ] && echo ".$gfwdomain" >> $dnsgfwdp
 done
 md5sum -c -s $dnsgfwdm
 [ "$?" != "0" ] && rm -rf $dnsgfwdt && cp -rf $dnsgfwdp $dnsgfwdt
@@ -181,12 +182,20 @@ custom_gfwlist
 
 get_dns_conf()
 {
-[ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("server=/%s/'$dnsfslsp'\n", $1, $1 )}' >> $dnslistc
+[ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("server=/%s/'$dnsfslsp'\n", $1, $1 )}' >> $dnslistc
 if [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then
-  [ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnslistc
-  grep -v '^#' $dnschndt | grep -v '^$' | awk '{printf("ipset=/%s/chnlist\n", $1, $1 )}' >> $dnslistc
+  [ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnslistc
+  grep -v '^#' $dnschndt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/chnlist\n", $1, $1 )}' >> $dnslistc
 fi
 [ -e "$CONF_DIR/Serveraddr-noip" ] && cat $CONF_DIR/Serveraddr-noip | awk '{printf("ipset=/%s/servers\n", $1, $1 )}' >> $dnslistc
+[ "$1" != "dnsmasq-tcp" ] && for addgfw in $(nvram get ss_custom_gfwlist | sed 's/,/ /g'); do
+  dnsspoofing=$(echo $addgfw | grep '^#' | sed 's/#//g')
+  if [ "$dnsspoofing" != "" ]; then
+    sed -i '/'$dnsspoofing'/d' $dnslistc
+    echo "server=/$dnsspoofing/$dnsfslsp" >> $dnslistc
+    echo "ipset=/$dnsspoofing/chnlist" >> $dnslistc
+  fi
+done
 sed -i 's/^### gfwlist related.*/### gfwlist related resolve by '$1' '$2'/g' $dnsmasqc
 sed -i 's/^#min-cache-ttl=/min-cache-ttl=/g' $dnsmasqc
 [ -e "$dnslistc" ] && sed -i 's/^#conf-dir=/conf-dir=/g' $dnsmasqc
@@ -204,7 +213,7 @@ if [ "$1" != "0" ] && [ "$(nvram get dns_forwarder_enable)" == "1" ]; then
 
 start-stop-daemon -S -b -N 0 -x dns-forwarder -- -b 0.0.0.0 -p $ss_dns_p -s $ss_dns_s
 EOF
-elif [ "$(nvram get dns_forwarder_enable)" == "0" ]; then
+elif [ "$1" != "0" ] && [ "$(nvram get dns_forwarder_enable)" == "0" ]; then
   get_dns_conf dnsmasq-tcp "$dnstcpsp"
 fi
 logger -st "SSP[$$]$bin_type" "创建解析规则"
