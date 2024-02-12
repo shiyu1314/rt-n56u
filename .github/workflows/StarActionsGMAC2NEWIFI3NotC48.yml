@@ -164,14 +164,14 @@ jobs:
           echo "image_name=${image_name}" >> $GITHUB_ENV
 # Star编译完成的固件到Artifacts下载
       - name: Upload images to Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.image_name }}
           path: ${{ env.images_dir }}/*.7z
 # Release编译完成的固件到Releases下载
       - name: Upload images to Releases
         if: ${{ github.event_name == 'release' && success() }}
-        uses: svenstaro/upload-release-action@2.6.0
+        uses: svenstaro/upload-release-action@2.7.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.images_dir }}/*.trx

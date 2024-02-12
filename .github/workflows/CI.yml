@@ -172,13 +172,13 @@ jobs:
           echo "image_name=${image_name}" >> $GITHUB_ENV
       - name: Upload images to Artifact
         if: ${{ github.event_name != 'release' && success() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.image_name }}
           path: ${{ env.images_dir }}/*.7z
       - name: Upload images to Releases
         if: ${{ github.event_name == 'release' && success() }}
-        uses: svenstaro/upload-release-action@2.6.0
+        uses: svenstaro/upload-release-action@2.7.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.images_dir }}/*.trx
