@@ -4,6 +4,9 @@ on:
 # 点击☆Star开始编译
   watch:
     types: [started]
+# 新建Release开始编译
+  release:
+    types: [published]
 
 env:
       images_dir: /opt/images
@@ -132,6 +135,7 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "y" "设置SSP代理基础程序"
           SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "y" "设置SSP代理Trojan可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSVMESS"                   "y" "设置SSP代理VMess可执行程序"
+          SP "CONFIG_FIRMWARE_INCLUDE_SSNAIVE"                   "y" "设置SSP代理Naive可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSV2RP"                    "n" "设置SSP代理SS插件v2ray-plugin可执行程序"
           ######################################################################################################
           SP "CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE"               "n" "设置OpenSSL可执行程序"
@@ -162,9 +166,19 @@ jobs:
           image_name="${{ env.VER }}${{ env.RMD }}_${build_variant}_${build_targets}"
           cd ${images_dir}; md5sum *.trx |tee md5sum.txt; 7z a -mx=9 ${image_name}.7z ./*
           echo "image_name=${image_name}" >> $GITHUB_ENV
-# 编译完成的固件到Artifacts下载
+# Star编译完成的固件到Artifacts下载
       - name: Upload images to Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.image_name }}
           path: ${{ env.images_dir }}/*.7z
+# Release编译完成的固件到Releases下载
+      - name: Upload images to Releases
+        if: ${{ github.event_name == 'release' && success() }}
+        uses: svenstaro/upload-release-action@2.7.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.images_dir }}/*.trx
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

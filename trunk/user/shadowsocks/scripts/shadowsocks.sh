@@ -21,6 +21,7 @@ local_bin="ss-local"
 local_link="/var/ss-local"
 #$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
 #$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
+#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/naive or $SYSB_DIR/naive
 v2rp_bin="v2ray-plugin"
 v2rp_link="/var/v2ray-plugin"
 #$SYSB_DIR/v2ray-plugin -> /var/v2ray-plugin -> $EXTB_DIR/v2ray-plugin or $SYSB_DIR/ss-v2ray-plugin
@@ -71,12 +72,14 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ "$ssp_type" == "1" ] && bin_type="SSR"
 [ "$ssp_type" == "2" ] && bin_type="Trojan"
 [ "$ssp_type" == "3" ] && bin_type="VMess"
+[ "$ssp_type" == "4" ] && bin_type="Naive"
 [ "$ssp_type" == "8" ] && bin_type="Custom"
 [ "$ssp_type" == "9" ] && bin_type="Auto"
 [ "$ss_socks" == "1" ] && ssp_ubin="$local_bin" || ssp_ubin="$redir_bin"
 [ ! -d "$CONF_DIR/gfwlist" ] && mkdir -p "$CONF_DIR/gfwlist" && echo "3" > $errorcount && echo "0" > $areconnect
 [ -e "$EXTB_DIR/$sspbinname" ] && chmod +x $EXTB_DIR/$sspbinname && ssp_custom="$EXTB_DIR/$sspbinname" || ssp_custom="$SYSB_DIR/$sspbinname"
 [ -e "$EXTB_DIR/trojan" ] && chmod +x $EXTB_DIR/trojan && ssp_trojan="$EXTB_DIR/trojan" || ssp_trojan="$SYSB_DIR/trojan"
+[ -e "$EXTB_DIR/naive" ] && chmod +x $EXTB_DIR/naive && ssp_naive="$EXTB_DIR/naive" || ssp_naive="$SYSB_DIR/naive"
 [ -e "$EXTB_DIR/v2ray" ] && chmod +x $EXTB_DIR/v2ray && ssp_v2ray="$EXTB_DIR/v2ray" || ssp_v2ray="$SYSB_DIR/v2ray"
 [ -e "$EXTB_DIR/v2ray-plugin" ] && chmod +x $EXTB_DIR/v2ray-plugin && ssp_v2rp="$EXTB_DIR/v2ray-plugin" || ssp_v2rp="$SYSB_DIR/ss-v2ray-plugin"
 [ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
@@ -112,6 +115,7 @@ stop_socks()
 {
 rm -rf $socksstart
 stopp ipt2socks
+logger -st "SSP[$$]$bin_type" "关闭本地代理"
 }
 
 stop_rules()
@@ -182,6 +186,7 @@ custom_gfwlist
 
 get_dns_conf()
 {
+logger -st "SSP[$$]$bin_type" "创建解析规则"
 [ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("server=/%s/'$dnsfslsp'\n", $1, $1 )}' >> $dnslistc
 if [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then
   [ "$1" != "dnsmasq-tcp" ] && grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnslistc
@@ -216,7 +221,6 @@ EOF
 elif [ "$1" != "0" ] && [ "$(nvram get dns_forwarder_enable)" == "0" ]; then
   get_dns_conf dnsmasq-tcp "$dnstcpsp"
 fi
-logger -st "SSP[$$]$bin_type" "创建解析规则"
 [ -e "$dnscqstart" ] && chmod +x $dnscqstart && $dnscqstart
 restart_dhcpd
 }
@@ -275,13 +279,13 @@ turn_json_file()
 [ -e "$CONF_DIR/ssp_custom.md5" ] && md5sum -c -s $CONF_DIR/ssp_custom.md5 || return 1
 [ -e "$CONF_DIR/Nodes-list.md5" ] && rm -rf $CONF_DIR/Nodes-list && for i in $(seq 1 $nodesnum); do
   j=$(expr $i - 1)
-  node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3
-  server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess
-  server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess
-  server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess
+  node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4
+  server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive
+  server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive
+  server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive
   server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess
   ss_method=$(nvram get ss_method_x$j)           # SS SSR        VMess
-  ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess
+  ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive
   ss_proto_param=$(nvram get ss_proto_param_x$j) #    SSR        VMess
   ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess
   ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess
@@ -322,13 +326,13 @@ if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
   logger -st "SSP[$$]$bin_type" "创建配置文件"
   for i in $(seq 1 $nodesnum); do
     j=$(expr $i - 1)
-    node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3
-    server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess
-    server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess
-    server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess
+    node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4
+    server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive
+    server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive
+    server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive
     server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess
     ss_method=$(nvram get ss_method_x$j)           # SS SSR        VMess
-    ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess
+    ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive
     ss_proto_param=$(nvram get ss_proto_param_x$j) #    SSR        VMess
     ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess
     ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess
@@ -338,6 +342,7 @@ if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
     [ "$node_type" == "1" ] && server_type="SSR"
     [ "$node_type" == "2" ] && server_type="Trojan"
     [ "$node_type" == "3" ] && server_type="VMess"
+    [ "$node_type" == "4" ] && server_type="Naive"
     if [ "$server_type" == "SS" ]; then
       if [ "$ss_obfs" == "v2ray_plugin_websocket" ]; then
         ss_pm="v2rp-WEBS" && ss_plugin="$v2rp_bin"
@@ -445,6 +450,27 @@ EOF
         "verify_hostname": $verifyhostname,
         "sni": "$server_sni"
     }
+}
+
+EOF
+    elif [ "$server_type" == "Naive" ]; then
+      r_json_file="$i-$server_type-redir.json"
+      l_json_file="$i-$server_type-local.json"
+      echo "$server_addr#$server_port#$r_json_file#$l_json_file#null" >> $CONF_DIR/Naive-jsonlist
+      echo "$server_addr#$server_port#$r_json_file#$l_json_file#null" >> $CONF_DIR/Auto-jsonlist
+      cat > "$CONF_DIR/$r_json_file" << EOF
+{
+  "listen": "redir://0.0.0.0:$ss_local_port",
+  "proxy": "$ss_protocol://$server_key@$server_addr:$server_port",
+  "log": "$ubin_log_file"
+}
+
+EOF
+      cat > "$CONF_DIR/$l_json_file" << EOF
+{
+  "listen": "socks://0.0.0.0:$ss_local_port",
+  "proxy": "$ss_protocol://$server_key@$server_addr:$server_port",
+  "log": "$ubin_log_file"
 }
 
 EOF
@@ -770,6 +796,9 @@ elif [ "$ssp_server_type" == "SSR" ]; then
 elif [ "$ssp_server_type" == "Trojan" ]; then
   $([ -x "$ssp_trojan" ] && ln -sf $ssp_trojan $redir_link && ln -sf $ssp_trojan $local_link) || \
   $(stop_ssp "请上传 trojan 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
+elif [ "$ssp_server_type" == "Naive" ]; then
+  $([ -x "$ssp_naive" ] && ln -sf $ssp_naive $redir_link && ln -sf $ssp_naive $local_link) || \
+  $(stop_ssp "请上传 naive 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
 elif [ "$ssp_server_type" == "VMess" ]; then
   $([ -x "$ssp_v2ray" ] && ln -sf $ssp_v2ray $redir_link && ln -sf $ssp_v2ray $local_link) || \
   $(stop_ssp "请上传 v2ray 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
@@ -791,7 +820,7 @@ cat > "$socksstart" << EOF
 
 start-stop-daemon -S -b -N 0 -x ipt2socks -- -s 0.0.0.0 -p $ss_local_port -b 0.0.0.0 -l $ss_redir_port -R
 EOF
-chmod +x $socksstart && $socksstart
+chmod +x $socksstart && logger -st "SSP[$$]$bin_type" "开启本地代理" && $socksstart
 }
 
 sip_addr()
@@ -888,6 +917,8 @@ opt_arg()
 {
 if [ "$ssp_server_type" == "Custom" ] && [ "$confoptarg" != "" ]; then
   echo " $confoptarg"
+elif [ "$ssp_server_type" == "Naive" ]; then
+  echo " $(conffile)"
 elif [ "$ssp_server_type" == "VMess" ]; then
   echo " run -c $(conffile)"
 else
@@ -922,8 +953,7 @@ $(white_ip)\
 $(agent_mode)\
 $(agent_pact)
 EOF
-chmod +x $rulesstart
-logger -st "SSP[$$]$bin_type" "开启透明代理" && $rulesstart
+chmod +x $rulesstart && logger -st "SSP[$$]$bin_type" "开启透明代理" && $rulesstart
 SREC="$?"
 $([ "$SREC" == "0" ] && echo "0" > $startrules && gen_dns_conf && del_score_file && return 0) || \
 $([ "$SREC" == "1" ] && restart_firewall && gen_dns_conf && del_score_file && return 0) || \
@@ -939,8 +969,7 @@ conffile="$(conffile)"
 export SSL_CERT_FILE='/etc/storage/cacerts/cacert.pem'
 nohup $ssp_ubin$(opt_arg)$(udp_ext) &>$ubin_log_file &
 EOF
-chmod +x $quickstart
-logger -st "SSP[$$]$bin_type" "启动代理进程" && $quickstart
+chmod +x $quickstart && logger -st "SSP[$$]$bin_type" "启动代理进程" && $quickstart
 $(sleep 1 && pidof $ssp_ubin &>/dev/null) || $(sleep 1 && pidof $ssp_ubin &>/dev/null)
 [ "$?" == "1" ] && echo "1" > $areconnect && return 1 || return 0
 }

@@ -65,7 +65,7 @@ function initial(){
 }
 
 function change_ss_type(){
-	var v = document.form.ss_type.value; //0=ss 1=ssr 2=trojan 3=vmess 8=custom 9=auto
+	var v = document.form.ss_type.value; //0=ss 1=ssr 2=trojan 3=vmess 4=naive 8=custom 9=auto
 	showhide_div('row_custom_conf', (v == 8));
 }
 
@@ -223,6 +223,7 @@ function fill_ss_ipt2socks_status(status_code){
                                                 <select name="ss_type" class="input" style="width: 228px" onchange="change_ss_type();">
                                                     <option value="9" <% nvram_match_x("","ss_type", "9", "selected"); %>><#APChnAuto#></option>
                                                     <option value="2" <% nvram_match_x("","ss_type", "2", "selected"); %>>Trojan</option>
+                                                    <option value="4" <% nvram_match_x("","ss_type", "4", "selected"); %>>Naive</option>
                                                     <option value="0" <% nvram_match_x("","ss_type", "0", "selected"); %>>SS</option>
                                                     <option value="1" <% nvram_match_x("","ss_type", "1", "selected"); %>>SSR</option>
                                                     <option value="3" <% nvram_match_x("","ss_type", "3", "selected"); %>>VMess</option>

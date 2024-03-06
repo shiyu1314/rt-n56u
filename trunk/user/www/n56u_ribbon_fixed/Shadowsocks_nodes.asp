@@ -55,7 +55,7 @@ function initial(){
 }
 
 function change_server_type(){
-	var st = document.form.ss_server_type_x_0.value; //0=ss 1=ssr 2=trojan 3=vmess
+	var st = document.form.ss_server_type_x_0.value; //0=ss 1=ssr 2=trojan 3=vmess 4=naive
 	var md = document.form.ss_method_x_0.value;
 	var pl = document.form.ss_protocol_x_0.value;
 	var os = document.form.ss_obfs_x_0.value;
@@ -161,11 +161,21 @@ function change_server_type(){
 		&& (os != "none")){
 			document.form.ss_obfs_x_0.value = "none";
 		}
+	}else if(st == 4){
+		document.form.ss_server_sni_x_0.value = "";
+		document.form.ss_method_x_0.value = "";
+		document.form.ss_proto_param_x_0.value = "";
+		document.form.ss_obfs_x_0.value = "";
+		document.form.ss_obfs_param_x_0.value = "";
+		if((pl != "https")
+		&& (pl != "quic")){
+			document.form.ss_protocol_x_0.value = "https";
+		}
 	}
 	var md = document.form.ss_method_x_0.value;
 	var pl = document.form.ss_protocol_x_0.value;
 	var os = document.form.ss_obfs_x_0.value;
-	showhide_div('row_013_m', (st != 2));
+	showhide_div('row_013_m', ((st != 2) && (st != 4)));
 	showhide_div('row_3_m_o_chacha20poly1305', (st == 3));
 	showhide_div('row_03_m_o_aes128gcm', ((st == 0) || (st == 3)));
 	showhide_div('row_0_m_o_aes192gcm', (st == 0));
@@ -191,7 +201,7 @@ function change_server_type(){
 	showhide_div('row_01_m_o_chacha20ietf', ((st == 0) || (st == 1)));
 	showhide_div('row_01_mnote', ((st == 0) || (st == 1)));
 	showhide_div('row_3_mnote', (st == 3));
-	showhide_div('row_13_p', ((st == 1) || (st == 3)));
+	showhide_div('row_134_p', ((st == 1) || (st == 3) || (st == 4)));
 	showhide_div('row_1_p_o_origin', (st == 1));
 	showhide_div('row_1_p_o_authsha1', (st == 1));
 	showhide_div('row_1_p_o_authsha1v2', (st == 1));
@@ -204,14 +214,17 @@ function change_server_type(){
 	showhide_div('row_3_p_o_wstls', (st == 3));
 	showhide_div('row_3_p_o_tcp', (st == 3));
 	showhide_div('row_3_p_o_tcptls', (st == 3));
+	showhide_div('row_4_p_o_https', (st == 4));
+	showhide_div('row_4_p_o_quic', (st == 4));
 	showhide_div('row_1_pnote', (st == 1));
 	showhide_div('row_3_pnote', (st == 3));
+	showhide_div('row_4_pnote', (st == 4));
 	showhide_div('row_13_pp', ((st == 1) || (st == 3)));
 	showhide_div('row_1_ppmenu', (st == 1));
 	showhide_div('row_3_ppmenu', (st == 3));
 	showhide_div('row_1_ppnote', (st == 1));
 	showhide_div('row_3_ppnote', (st == 3));
-	showhide_div('row_013_o', (st != 2));
+	showhide_div('row_013_o', ((st != 2) && (st != 4)));
 	showhide_div('row_0_omenu', (st == 0));
 	showhide_div('row_1_omenu', (st == 1));
 	showhide_div('row_3_omenu', (st == 3));
@@ -298,6 +311,8 @@ function showMRULESList(){
 				ssservertype="Trojan";
 			}else if(m_list[i][0] == 3){
 				ssservertype="VMess";
+			}else if(m_list[i][0] == 4){
+				ssservertype="Naive";
 			}else{
 				ssservertype="unknown";
 			}
@@ -408,6 +423,7 @@ function showMRULESList(){
                                             <td width="22%">
                                                 <select name="ss_server_type_x_0" class="input" style="width: 145px" onchange="change_server_type();">
                                                     <option value="2" <% nvram_match_x("","ss_server_type_x_0", "2","selected"); %>>Trojan</option>
+                                                    <option value="4" <% nvram_match_x("","ss_server_type_x_0", "4","selected"); %>>Naive</option>
                                                     <option value="0" <% nvram_match_x("","ss_server_type_x_0", "0","selected"); %>>SS</option>
                                                     <option value="1" <% nvram_match_x("","ss_server_type_x_0", "1","selected"); %>>SSR</option>
                                                     <option value="3" <% nvram_match_x("","ss_server_type_x_0", "3","selected"); %>>VMess</option>
@@ -446,7 +462,7 @@ function showMRULESList(){
                                             <td width="22%" id="row_01_mnote" style="display:none;">..method</td> <td width="22%" id="row_3_mnote" style="display:none;">..security</td>
                                         </tr>
 
-                                        <tr id="row_13_p" style="display:none;"> <th width="22%"><#menu5_16_TransferProtocol#></th>
+                                        <tr id="row_134_p" style="display:none;"> <th width="22%"><#menu5_16_TransferProtocol#></th>
                                             <td>
                                                 <select name="ss_protocol_x_0" class="input" style="width: 342px" onchange="change_server_type();">   
                                                     <option id="row_1_p_o_origin" style="display:none;" value="origin" <% nvram_match_x("","ss_protocol_x_0", "origin","selected"); %>>origin</option> <!--ssr-->
@@ -461,9 +477,11 @@ function showMRULESList(){
                                                     <option id="row_3_p_o_wstls" style="display:none;" value="ws_tls" <% nvram_match_x("","ss_protocol_x_0", "ws_tls","selected"); %>>ws+tls</option> <!--vmess-->
                                                     <option id="row_3_p_o_tcp" style="display:none;" value="tcp" <% nvram_match_x("","ss_protocol_x_0", "tcp","selected"); %>>tcp</option> <!--vmess-->
                                                     <option id="row_3_p_o_tcptls" style="display:none;" value="tcp_tls" <% nvram_match_x("","ss_protocol_x_0", "tcp_tls","selected"); %>>tcp+tls</option> <!--vmess-->
+                                                    <option id="row_4_p_o_https" style="display:none;" value="https" <% nvram_match_x("","ss_protocol_x_0", "https","selected"); %>>https</option> <!--naive-->
+                                                    <option id="row_4_p_o_quic" style="display:none;" value="quic" <% nvram_match_x("","ss_protocol_x_0", "quic","selected"); %>>quic</option> <!--naive-->
                                                 </select>
                                             </td>
-                                            <td width="22%" id="row_1_pnote" style="display:none;">..protocol</td> <td width="22%" id="row_3_pnote" style="display:none;">..network</td>
+                                            <td width="22%" id="row_1_pnote" style="display:none;">..protocol</td> <td width="22%" id="row_3_pnote" style="display:none;">..network</td> <td width="22%" id="row_4_pnote" style="display:none;">..proto</td>
                                         </tr>
 
                                         <tr id="row_13_pp" style="display:none;"> <th width="22%" id="row_1_ppmenu" style="display:none;"><#menu5_16_ProtocolParam#></th> <th width="22%" id="row_3_ppmenu" style="display:none;"><#menu5_16_ProtocolPath#></th>

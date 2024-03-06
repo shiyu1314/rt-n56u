@@ -203,4 +203,7 @@ endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SSVMESS),y)
 	$(ROMFSINST) -p +x $(THISDIR)/v2ray /usr/bin/v2ray
 endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SSNAIVE),y)
+	$(ROMFSINST) -p +x $(THISDIR)/naive /usr/bin/naive
+endif
 
