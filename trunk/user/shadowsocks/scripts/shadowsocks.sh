@@ -254,6 +254,11 @@ wait
 return 0
 }
 
+notify_detect_internet()
+{
+killall -q -SIGUSR2 detect_internet
+}
+
 stop_ssp()
 {
 [ -n "$1" ] && nvram set ss_enable=0 && logger -st "SSP[$$]WARNING" "$1"
@@ -267,10 +272,21 @@ if [ "$ss_enable" == "0" ]; then
   rm -rf $areconnect
   rm -rf $startrules
   rm -rf $internetcd
+elif [ "$(tail -n 1 $internetcd 2>/dev/null)" == "1" ]; then
+  $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || stop_watchcat
+  stop_socks
+  stop_rules
+  gen_dns_conf 0
+  del_json_file
+  del_score_file
+  rm -rf $areconnect
+  rm -rf $startrules
+  rm -rf $internetcd
 else
   $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || stop_watchcat
 fi
 stop_redir
+notify_detect_internet
 return 0
 }
 
@@ -1008,7 +1024,7 @@ echo "$ssp_server_snum#$ssp_server_type#$ssp_server_addr#$ssp_server_port" > $is
 [ $(tail -n +1 "$errorcount" 2>/dev/null) -ge 1 ] && scron 1 && exit 0
 sleep 1 && pidof ss-watchcat.sh &>/dev/null && STA_LOG="重启完成" || $SYSB_DIR/ss-watchcat.sh
 logger -st "SSP[$(pidof $ssp_ubin)]$ssp_server_type" "节点$ssp_server_snum[$ssp_server_addr:$ssp_server_port]${STA_LOG:=成功启动}" && scron 1
-echo "1" > $netdpcount
+notify_detect_internet
 return 0
 }
 

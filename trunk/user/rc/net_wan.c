@@ -103,7 +103,7 @@ control_wan_led_isp_state(int is_wan_up, int is_modem_unit)
 	}
 #endif
 
-	notify_run_detect_internet(2);
+	notify_run_detect_internet(6);
 }
 
 static void
@@ -1024,7 +1024,7 @@ start_wan(void)
 		}
 	}
 
-	notify_run_detect_internet(2);
+	notify_run_detect_internet(6);
 
 	set_passthrough_pppoe(1);
 }
@@ -1365,7 +1365,7 @@ wan_up(char *wan_ifname, int unit, int is_static)
 	if (wan_gate)
 		control_wan_led_isp_state(1, modem_unit_id);
 	else
-		notify_run_detect_internet(2);
+		notify_run_detect_internet(6);
 
 	/* call custom user script */
 	if (check_if_file_exist(script_postw))
@@ -1624,11 +1624,11 @@ notify_on_wan_ether_link_restored(void)
 }
 
 void
-notify_on_internet_state_changed(int has_internet)
+notify_on_internet_state_changed(int link_internet, int link_previous, long state_duration)
 {
 	const char *script_inet = SCRIPT_INTERNET_STATE;
 
-	if (!has_internet && !get_ap_mode()) {
+	if (link_internet == 0 && !get_ap_mode()) {
 		int fail_action = nvram_safe_get_int("di_lost_action", 0, 0, 3);
 		switch (fail_action)
 		{
@@ -1651,7 +1651,7 @@ notify_on_internet_state_changed(int has_internet)
 	}
 
 	if (check_if_file_exist(script_inet))
-		doSystem("%s %d", script_inet, has_internet);
+		doSystem("%s %d %d %d", script_inet, link_internet, link_previous, state_duration);
 }
 
 int

@@ -632,8 +632,8 @@ start_lan(int is_ap_mode, int do_wait)
 			/* manual config lan gateway and dns */
 			lan_up_manual(lan_ifname, lan_dname);
 			
-			/* di wakeup after 2 secs */
-			notify_run_detect_internet(2);
+			/* di wakeup after 6 secs */
+			notify_run_detect_internet(6);
 		}
 	} else {
 		
@@ -874,8 +874,8 @@ lan_up_auto(char *lan_ifname, char *lan_gateway, char *lan_dname)
 	config_smb_fastpath(1);
 #endif
 
-	/* di wakeup after 2 secs */
-	notify_run_detect_internet(2);
+	/* di wakeup after 6 secs */
+	notify_run_detect_internet(6);
 }
 
 static void
@@ -901,8 +901,8 @@ lan_down_auto(char *lan_ifname)
 	config_smb_fastpath(1);
 #endif
 
-	/* di wakeup after 2 secs */
-	notify_run_detect_internet(2);
+	/* di wakeup after 6 secs */
+	notify_run_detect_internet(6);
 }
 
 void 

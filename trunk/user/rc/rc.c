@@ -406,12 +406,12 @@ set_led_wan(int state, int ledwl, int force)
 	}
 
 	if (state == 3 && ledwl != 0 && ledwl == led_wan_level && led_show == 1) {
-		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") != 1) ? LED_ON : LED_OFF);
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") == 0) ? LED_ON : LED_OFF);
 #if defined (BOARD_GPIO_LED_WAN2)
-		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") != 1) ? LED_OFF : LED_ON);
+		cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") == 0) ? LED_OFF : LED_ON);
 #endif
 #if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-		LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") != 1) ? LED_OFF : LED_ON);
+		LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") == 0) ? LED_OFF : LED_ON);
 #endif
 		sleep(1);
 	}
@@ -422,12 +422,12 @@ set_led_wan(int state, int ledwl, int force)
 			nvram_set_int_temp("link_internet", state);
 #if defined (BOARD_GPIO_LED_WAN)
 		if (ledwl != 0 && ledwl == led_wan_level && led_show == 1) {
-			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") == 1) ? LED_ON : LED_OFF);
+			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN, (nvram_get_int("link_internet") >= 1) ? LED_ON : LED_OFF);
 #if defined (BOARD_GPIO_LED_WAN2)
-			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") == 1) ? LED_OFF : LED_ON);
+			cpu_gpio_set_pin(BOARD_GPIO_LED_WAN2, (nvram_get_int("link_internet") >= 1) ? LED_OFF : LED_ON);
 #endif
 #if defined (BOARD_K2P) || defined (BOARD_PSG1218)
-			LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") == 1) ? LED_OFF : LED_ON);
+			LED_CONTROL(BOARD_GPIO_LED_WIFI, (nvram_get_int("link_internet") >= 1) ? LED_OFF : LED_ON);
 #endif
 		}
 #endif
@@ -621,8 +621,7 @@ nvram_convert_misc_values(void)
 	nvram_set_temp("login_timestamp", "0000000000");
 
 	nvram_set_int_temp("networkmap_fullscan", 0);
-	nvram_set_int_temp("link_internet", 2);
-	nvram_set_int_temp("global_internet", 2);
+	nvram_set_int_temp("link_internet", 3);
 	nvram_set_int_temp("link_wan", 0);
 
 	nvram_set_int_temp("led_front_t", 1);
@@ -713,6 +712,7 @@ flash_firmware(void)
 	stop_usb_printer_spoolers();
 #endif
 	stop_igmpproxy(NULL);
+	stop_detect_internet();
 
 	kill_services(svcs, 6, 1);
 
@@ -1105,6 +1105,7 @@ shutdown_router(int level)
 		stop_services_lan_wan();
 		set_ipv4_forward(0);
 	}
+	stop_detect_internet();
 	set_led_wan(0, 0, 1);
 
 	storage_save_time(10);
@@ -1449,7 +1450,7 @@ handle_notifications(void)
 		else if (strcmp(entry->d_name, RCN_RESTART_DI) == 0)
 		{
 			if (get_ap_mode() || has_wan_ip4(0))
-				notify_run_detect_internet(2);
+				notify_runfast_detect_internet();
 		}
 #if defined (USE_USB_SUPPORT)
 		else if (!strcmp(entry->d_name, RCN_RESTART_MODEM))

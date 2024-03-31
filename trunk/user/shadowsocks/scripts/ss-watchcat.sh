@@ -160,14 +160,13 @@ watchcat_stop_ssp(){
 }
 
 notify_detect_internet(){
-	killall -q -SIGHUP detect_internet
+	killall -q -SIGUSR2 detect_internet
 }
 
 watchcat_start_ssp(){
 	$(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || return 0
+	notify_detect_internet && sleeptime $timeslimit 0 && [ "$(nvram get link_internet)" == "1" ] || return 1
 	count $errorcount -- 1 0 && [ $(count $errorcount) -le 0 ] || return 1
-	notify_detect_internet && sleeptime $timeslimit 0 && count $internetcd +- 0
-	[ "$(nvram get link_internet)" == "1" ] || return 1
 	[ "$(nvram get ss_enable)" == "1" ] || /usr/bin/shadowsocks.sh stop &>/dev/null
 	!(pidof $sspubin &>/dev/null) || /usr/bin/shadowsocks.sh stop &>/dev/null
 	STA_LOG="恢复正常!!!重新启动代理" && loger "├──$STA_LOG" && logger -st "SSP[$$]WARNING" "$STA_LOG"
@@ -179,37 +178,33 @@ reconnection(){
 	daten || return 1
 	[ "$recyesornot" == "1" ] || sleeptime 1 1 || return 0
 	recyesornot="0" && count $scorecount ++ 1 10080
-	[ $(count $netdpcount) -ge 1 ] || [ $(count $internetcd) -eq 1 ] || sleeptime 1 1 || return 0
-	notify_detect_internet && sleeptime $timeslimit 0 && count $internetcd +- 0 && 
-	if [ "$(nvram get global_internet)" == "1" ]; then
+	[ $(count $netdpcount) -ge 1 ] || [ $(nvram get link_internet) -ne 2 ] || sleeptime 1 1 || return 0
+	notify_detect_internet && sleeptime $timeslimit 0
+	if [ "$(nvram get link_internet)" == "2" ]; then
 		count $netdpcount +- 0 && score
-	elif [ "$(nvram get global_internet)" == "0" ]; then
-		if [ "$(nvram get link_internet)" == "1" ]; then
-			if [ "$autorec" == "1" ]; then
-				count $netdpcount ++ 1 9
-				if [ $(count $netdpcount) -ge 2 ]; then
-					count $errorcount ++ 1 5
-					score && count $scorecount +- 0
-					watchcat_stop_ssp || watchcat_start_ssp || return 1
-				else
-					count $scorecount -- 1 0
-				fi
+	elif [ "$(nvram get link_internet)" == "1" ]; then
+		if [ "$autorec" == "1" ]; then
+			count $netdpcount ++ 1 9
+			if [ $(count $netdpcount) -ge 2 ]; then
+				count $errorcount ++ 1 5
+				score && count $scorecount +- 0
+				watchcat_stop_ssp || watchcat_start_ssp || return 1
 			else
-				count $netdpcount ++ 1 9
-				if [ $(count $netdpcount) -ge 9 ]; then
-					count $errorcount ++ 1 5 && count $areconnect +- 0
-					score && count $scorecount +- 0
-					watchcat_stop_ssp || return 1
-				else
-					count $scorecount -- 1 0
-				fi
+				count $scorecount -- 1 0
 			fi
-		elif [ "$(nvram get link_internet)" == "0" ]; then
-			count $errorcount ++ 1 5 && count $areconnect +- 0
-			watchcat_stop_ssp || return 1
 		else
-			return 0
+			count $netdpcount ++ 1 9
+			if [ $(count $netdpcount) -ge 9 ]; then
+				count $errorcount ++ 1 5 && count $areconnect +- 0
+				score && count $scorecount +- 0
+				watchcat_stop_ssp || return 1
+			else
+				count $scorecount -- 1 0
+			fi
 		fi
+	elif [ "$(nvram get link_internet)" == "0" ]; then
+		count $errorcount ++ 1 5 && count $internetcd +- 1
+		watchcat_stop_ssp || return 1
 	else
 		return 0
 	fi

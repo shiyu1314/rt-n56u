@@ -363,79 +363,92 @@ EOF
 #!/bin/sh
 
 ### Custom user script
-### Called on Internet status changed
-### \$1 - Internet status (0/1)
+### Called on Internet state changed
+### \$1 - Internet status (Lost=0/Found=1 or Lost=0/Nation=1/Global=2)
+### \$2 - Previous status (Lost=0/Found=1 or Lost=0/Nation=1/Global=2) 3=Unknown
+### \$3 - State duration  (second)
 
-logger -st "detect_internet" "Internet status: \$1"
+logger -st "Internet state changed" "\$2 -(\$3)> \$1"
 
 EOF
 		chmod 755 "$script_inets"
 	fi
 
-	# create inet-detectinternet script
+	# create inet-detectinternet_1 script
 	if [ ! -f "$script_ineta" ] ; then
 		cat > "$script_ineta" <<EOF
 #!/bin/sh
 
 ### detect_internet_script
+set -b -e -o pipefail
+ulimit -t 1
 status_code=\$(nvram get di_status_code)
 user_agent=\$(nvram get di_user_agent)
 timeout=\$(nvram get di_timeout)
 domain=\$(nvram get di_domain_cn)
 
 curl "\$domain" -L -I -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
---speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code"
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code" || exit 1
 
 EOF
 		chmod 755 "$script_ineta"
 	fi
 
+	# create inet-detectinternet_2 script
 	if [ ! -f "$script_inetb" ] ; then
 		cat > "$script_inetb" <<EOF
 #!/bin/sh
 
 ### detect_internet_script
+set -b -e -o pipefail
+ulimit -t 1
 status_code=\$(nvram get di_status_code)
 user_agent=\$(nvram get di_user_agent)
 timeout=\$(nvram get di_timeout)
 domain=\$(nvram get di_domain_gb)
 
 curl "\$domain" -L -I -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
---speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code"
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$status_code" || exit 1
 
 EOF
 		chmod 755 "$script_inetb"
 	fi
 
+	# create inet-detectinternet_3 script
 	if [ ! -f "$script_inetc" ] ; then
 		cat > "$script_inetc" <<EOF
 #!/bin/sh
 
 ### detect_internet_script
+set -b -e -o pipefail
+ulimit -t 1
 page_feature=\$(nvram get di_page_feature)
 user_agent=\$(nvram get di_user_agent)
 timeout=\$(nvram get di_timeout)
 domain=\$(nvram get di_domain_cn)
 
 curl "\$domain" -L -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
---speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature"
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature" || exit 1
 
 EOF
 		chmod 755 "$script_inetc"
 	fi
 
+	# create inet-detectinternet_4 script
 	if [ ! -f "$script_inetd" ] ; then
 		cat > "$script_inetd" <<EOF
 #!/bin/sh
 
 ### detect_internet_script
+set -b -e -o pipefail
+ulimit -t 1
 page_feature=\$(nvram get di_page_feature)
 user_agent=\$(nvram get di_user_agent)
 timeout=\$(nvram get di_timeout)
 domain=\$(nvram get di_domain_gb)
 
 curl "\$domain" -L -k -s --connect-timeout \$timeout --max-time \$timeout --speed-time \$timeout \\
---speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature"
+--speed-limit 1 -A "\$user_agent" | grep -q -s -i "\$page_feature" || exit 1
 
 EOF
 		chmod 755 "$script_inetd"

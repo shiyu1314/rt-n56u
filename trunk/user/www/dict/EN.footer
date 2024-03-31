@@ -444,13 +444,15 @@ InetCheckPoll=Internet Hosts Polling Settings
 InetCheckPeriod=Poll Interval After Connection Success/Failed (s):
 InetCheckTimeout=Hosts Connection Timeout (s):
 InetCheckEvents=Events when the State of Internet Access is Changed
-InetCheckFoundLost=Retests for [Internet Found]/[Internet Lost] Event:
+InetCheckFoundLost=Delay [Internet Found]/[Internet Lost] Event (s):
 InetCheckLostAction=Perform Action on [Internet Lost] Event:
 InetCheckReconPause=Pause Before Run New WAN Connection (s):
 InetCheckLostItem0=No action
 InetCheckLostItem1=Router reboot
 InetCheckLostItem2=WAN reconnect
 InetCheckLostItem3=Switch Ethernet WAN <=> USB Modem
+InetCheckNotifyItem0=Lost/Found
+InetCheckNotifyItem1=Lost/Nation/Global
 Tweaks_desc=Customized button actions and LED events.
 TweaksWPSAction=WPS Button Action
 TweaksFN1Action=FN1 Button Action

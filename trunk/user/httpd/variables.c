@@ -168,6 +168,7 @@
 			{"modem_mtu", "", NULL, EVM_RESTART_MODEM},
 			{"modem_zcd", "", NULL, FALSE},
 			{"di_poll_mode", "", NULL, EVM_RESTART_DI},
+			{"di_notify_mode", "", NULL, EVM_RESTART_DI},
 			{"di_timeout", "", NULL, FALSE },
 			{"di_time_done", "", NULL, FALSE},
 			{"di_time_fail", "", NULL, FALSE},

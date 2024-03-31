@@ -654,7 +654,6 @@ stop_services(int stopall)
 #endif
 	stop_networkmap();
 	stop_lltd();
-	stop_detect_internet();
 	stop_rstats();
 	stop_infosvr();
 	stop_crond();

@@ -63,9 +63,9 @@ function validForm(){
 			return false;
 		if(!validate_range(document.form.di_time_fail, v, 60))
 			return false;
-		if(!validate_range(document.form.di_found_delay, 1, 6))
+		if(!validate_range(document.form.di_found_delay, 0, 3600))
 			return false;
-		if(!validate_range(document.form.di_lost_delay, 1, 60))
+		if(!validate_range(document.form.di_lost_delay, 0, 3600))
 			return false;
 		
 		if (document.form.di_lost_action.value == "2" && !get_ap_mode()){
@@ -221,7 +221,7 @@ function done_validating(action){
                                             <td>
                                                 <input type="text" maxlength="1" class="input" size="15" style="width: 94px;" name="di_found_delay" placeholder="1" value="<% nvram_get_x("", "di_found_delay"); %>" onkeypress="return is_number(this,event);"/>&nbsp;/
                                                 <input type="text" maxlength="2" class="input" size="15" style="width: 94px;" name="di_lost_delay" placeholder="10" value="<% nvram_get_x("", "di_lost_delay"); %>" onkeypress="return is_number(this,event);"/>
-                                                &nbsp;<span style="color:#888;">[1..6/1..60]</span>
+                                                &nbsp;<span style="color:#888;">[0..3600]</span>
                                             </td>
                                         </tr>
                                         <tr id="row_lost_action">
@@ -243,10 +243,18 @@ function done_validating(action){
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="2" style="padding-bottom: 0px;">
-                                                <a href="javascript:spoiler_toggle('script3')"><span><#RunInetState#></span></a>
-                                                <div id="script3" style="display:none;">
-                                                    <textarea rows="16" wrap="off" spellcheck="false" maxlength="8192" class="span12" name="scripts.inet_state_script.sh" style="font-family:'Courier New'; font-size:12px;"><% nvram_dump("scripts.inet_state_script.sh",""); %></textarea>
+                                            <th><a href="javascript:spoiler_toggle('inet_state_script')"><span><#RunInetState#></span></a></th>
+                                            <td>
+                                                <select name="di_notify_mode" class="input" style="width: 324px;">
+                                                    <option value="0" <% nvram_match_x("", "di_notify_mode", "0", "selected"); %>><#InetCheckNotifyItem0#> (*)</option>
+                                                    <option value="1" <% nvram_match_x("", "di_notify_mode", "1", "selected"); %>><#InetCheckNotifyItem1#></option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr id="inet_state_script" style="display:none;">
+                                            <td colspan="2" style="padding-bottom: 0px; border-top: 0 none;">
+                                                <div>
+                                                    <textarea rows="16" wrap="off" spellcheck="false" maxlength="8192" class="span12" name="scripts.inet_state_script.sh" style="resize:none; font-family:'Courier New', Courier, mono; font-size:12px;"><% nvram_dump("scripts.inet_state_script.sh",""); %></textarea>
                                                 </div>
                                             </td>
                                         </tr>

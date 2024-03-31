@@ -17,7 +17,6 @@ var is_ie11p = (/trident\/7\./).test(uagent);
 var is_mobile = (/iphone|ipod|ipad|iemobile|android|blackberry|fennec/).test(uagent);
 
 var new_wan_internet = '<% nvram_get_x("", "link_internet"); %>';
-var new_global_internet = '<% nvram_get_x("", "global_internet"); %>';
 var new_di_timeout = '<% nvram_get_x("", "di_timeout"); %>';
 var id_detect_internet = 0;
 var id_showset_status = 0;
@@ -62,10 +61,9 @@ function enableCheckChangedStatus(){
 	id_check_status = setTimeout("get_changed_status();", tm_ecs_sec * 1000);
 }
 
-function CheckChangedStatus(global_internet, wan_internet, di_timeout){
+function CheckChangedStatus(wan_internet, di_timeout){
 	disableCheckChangedStatus();
 
-	this.new_global_internet = global_internet;
 	this.new_wan_internet = wan_internet;
 	this.new_di_timeout = di_timeout;
 
@@ -73,7 +71,7 @@ function CheckChangedStatus(global_internet, wan_internet, di_timeout){
 
 	if (new_wan_internet == '0')
 		tm_di_sec = new_di_timeout * 1;
-	else if (new_global_internet == '0')
+	else if (new_wan_internet == '1')
 		tm_di_sec = new_di_timeout * 5;
 
 	var tm_cs_sec = new_di_timeout * 3 + tm_di_sec;
@@ -97,18 +95,17 @@ function set_internet_status(){
 }
 
 function update_internet_status(){
-	if (new_global_internet == '1')
-		showMapWANStatus(3);
+	if (new_wan_internet == '0')
+		showMapWANStatus(0);
 	else if (new_wan_internet == '1')
 		showMapWANStatus(1);
 	else if (new_wan_internet == '2')
 		showMapWANStatus(2);
 	else
-		showMapWANStatus(0);
+		showMapWANStatus(3);
 }
 
-function notify_status_internet(global_internet, wan_internet){
-	this.new_global_internet = global_internet;
+function notify_status_internet(wan_internet){
 	this.new_wan_internet = wan_internet;
 	if((location.pathname == "/" || location.pathname == "/index.asp") && (typeof(update_internet_status) === 'function'))
 		update_internet_status();
@@ -146,8 +143,8 @@ function get_changed_status(){
 			enableCheckChangedStatus();
 		},
 		success: function(response) {
-			CheckChangedStatus(now_global_internet, now_wan_internet, now_di_timeout);
-			notify_status_internet(now_global_internet, now_wan_internet);
+			CheckChangedStatus(now_wan_internet, now_di_timeout);
+			notify_status_internet(now_wan_internet);
 			notify_status_vpn_client(now_vpnc_state);
 		}
 	});

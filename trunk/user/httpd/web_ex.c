@@ -2125,7 +2125,8 @@ static int rules_count_hook(int eid, webs_t wp, int argc, char **argv)
 static int
 ej_detect_internet_hook(int eid, webs_t wp, int argc, char **argv)
 {
-	kill_pidfile_s("/var/run/detect_internet.pid", SIGHUP);
+	if (pids("detect_internet"))
+		kill_pidfile_s("/var/run/detect_internet.pid", SIGHUP);
 
 	return 0;
 }

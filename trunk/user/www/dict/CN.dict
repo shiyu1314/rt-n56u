@@ -459,13 +459,15 @@ InetCheckPoll=监测设置
 InetCheckPeriod=连接成功/失败后的监测间隔 (秒):
 InetCheckTimeout=主机连接超时时间 (秒):
 InetCheckEvents=互联网接入状态发生变化时执行的事件
-InetCheckFoundLost=[已连接]/[已断开] 事件重测次数:
+InetCheckFoundLost=[已连接]/[已断开] 事件延迟时间 (秒):
 InetCheckLostAction=[已断开] 事件执行动作:
 InetCheckReconPause=创建新的WAN连接前暂停时间 (秒):
 InetCheckLostItem0=无动作
 InetCheckLostItem1=重启路由器
 InetCheckLostItem2=重连WAN
 InetCheckLostItem3=切换有线网络 <=> USB网卡
+InetCheckNotifyItem0=已断开/已连接
+InetCheckNotifyItem1=已断开/已连接国内/已连接海外
 Tweaks_desc=自定义按钮功能和 LED 设置。
 TweaksWPSAction=WPS 按钮功能设置
 TweaksFN1Action=FN1 按钮功能设置

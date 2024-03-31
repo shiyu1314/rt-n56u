@@ -102,7 +102,7 @@ dl_handle_link_wan(void)
 			}
 		}
 #endif
-		notify_run_detect_internet(2);
+		notify_runfast_detect_internet();
 #if defined (BOARD_GPIO_LED_LAN)
 		front_led_x = nvram_get_int("front_led_lan");
 		if (front_led_x == 1)
@@ -132,7 +132,8 @@ dl_handle_link_wan(void)
 		
 		if (dl_counter_total > 1) {
 			logmessage("detect_link", "WAN port link %s!", (dl_status_wan) ? "restored" : "down detected");
-			notify_run_detect_internet(2);
+			set_led_wan(dl_status_wan, nvram_get_int("front_led_wan"), 1);
+			notify_runfast_detect_internet();
 		}
 	}
 
@@ -189,7 +190,7 @@ dl_handle_link_wisp(void)
 			set_led_wan(dl_state, 2, 0);
 		}
 #endif
-		notify_run_detect_internet(2);
+		notify_runfast_detect_internet();
 	}
 }
 
