@@ -606,16 +606,15 @@ EOF
 	for i in dnsmasq.conf hosts ; do
 		[ -f "$dir_storage/$i" ] && mv -n "$dir_storage/$i" "$dir_dnsmasq"
 	done
-	if $(cat "$user_dnsmasq_conf" | grep -q "^conf-dir=/tmp/SSP/gfwlist") || \
-	$(cat "$user_dnsmasq_conf" | grep -q "^gfwlist=/etc/storage/gfwlist") || \
-	$(cat "$user_dnsmasq_conf" | grep -q "^min-cache-ttl=") ; then
-		rm -f "$user_dnsmasq_conf"
+	if $(cat "$user_dnsmasq_conf" | grep -q "^conf-dir=/tmp/SSP/gfwlist") ; then
+		sed -i 's:^conf-dir=/tmp/SSP/gfwlist:#conf-dir=/tmp/SSP/gfwlist:g' $user_dnsmasq_conf
 	fi
 	if [ ! -f "$user_dnsmasq_conf" ] ; then
 		cat > "$user_dnsmasq_conf" <<EOF
 # Custom user conf file for dnsmasq
 # Please add needed params only!
 
+### Examples:
 ### Web Proxy Automatic Discovery (WPAD)
 dhcp-option=252,"\n"
 
@@ -624,8 +623,6 @@ dhcp-option=252,"\n"
 
 ### Add local-only domains, queries are answered from hosts or DHCP only
 #local=/router/localdomain/
-
-### Examples:
 
 ### Enable built-in TFTP server
 #enable-tftp
@@ -654,22 +651,11 @@ srv-host=_vlmcs._tcp,my.router,1688,0,100
 EOF
 	fi
 
-	if [ -f /usr/bin/wing ]; then
-		cat >> "$user_dnsmasq_conf" <<EOF
-# Custom domains to gfwlist
-#gfwlist=mit.edu
-#gfwlist=openwrt.org,lede-project.org
-#gfwlist=github.com,github.io,githubusercontent.com
-
-EOF
-	fi
-
 	if [ -d $dir_gfwlist ]; then
 		cat >> "$user_dnsmasq_conf" <<EOF
 ### gfwlist related resolve
 #min-cache-ttl=3600
 #conf-dir=/tmp/SSP/gfwlist
-#gfwlist=/etc/storage/gfwlist/gfwlist_domain.txt@8.8.4.4~53
 
 EOF
 	fi
