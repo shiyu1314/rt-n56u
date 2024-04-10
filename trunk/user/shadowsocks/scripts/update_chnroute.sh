@@ -1,6 +1,7 @@
 #!/bin/sh
 
-set -e -o pipefail
+set -b -e -o pipefail
+ulimit -t 60
 
 [ "$1" != "force" ] && [ "$(nvram get ss_update_chnroute)" != "1" ] && exit 0
 USBB_DIR=$(find /media/ -name SSP)
@@ -16,9 +17,11 @@ user_agent=$(nvram get di_user_agent)
 [ -e $EXTB_DIR/chnroute.txt ] && mv -f $EXTB_DIR/chnroute.txt $EXTB_DIR/chnroute.old
 if [ -z "$CHNROUTE_URL" ]; then
 	curl -k -s -A "$user_agent" --connect-timeout 5 --retry 3 "$APNIC_URL" | sed '/\*/d' | \
-	awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > $EXTB_DIR/chnroute.txt
+	awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' | \
+	grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sort -u > $EXTB_DIR/chnroute.txt
 else
-	curl -k -s --connect-timeout 5 --retry 3 -o $EXTB_DIR/chnroute.txt "$CHNROUTE_URL"
+	curl -k -s --connect-timeout 5 --retry 3 "$CHNROUTE_URL" | grep -v '^#' | grep -v '^$' | \
+	grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sort -u > $EXTB_DIR/chnroute.txt
 fi)&
 
 wait

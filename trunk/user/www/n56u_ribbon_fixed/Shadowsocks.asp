@@ -297,7 +297,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_chnroute_url" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="chnroute_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLCountryRouting#>" value="<% nvram_get_x("","chnroute_url"); %>">
+                                                    <input type="text" maxlength="256" class="input" size="256" name="chnroute_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLCountryRouting#>" value="<% nvram_get_x("","chnroute_url"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -305,7 +305,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_custom_chnroute" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_chnroute" style="width: 654px" placeholder="<#menu5_16_AddCountryRouting#>" value="<% nvram_get_x("","ss_custom_chnroute"); %>">
+                                                    <input type="text" maxlength="512" class="input" size="512" name="ss_custom_chnroute" style="width: 654px" placeholder="<#menu5_16_AddCountryRouting#>" value="<% nvram_get_x("","ss_custom_chnroute"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -335,7 +335,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_chnlist_url" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="chnlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLChnDomainList#>" value="<% nvram_get_x("","chnlist_url"); %>">
+                                                    <input type="text" maxlength="256" class="input" size="256" name="chnlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLChnDomainList#>" value="<% nvram_get_x("","chnlist_url"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -343,7 +343,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_custom_chnlist" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_chnlist" style="width: 654px" placeholder="<#menu5_16_AddChnDomains#>" value="<% nvram_get_x("","ss_custom_chnlist"); %>">
+                                                    <input type="text" maxlength="512" class="input" size="512" name="ss_custom_chnlist" style="width: 654px" placeholder="<#menu5_16_AddChnDomains#>" value="<% nvram_get_x("","ss_custom_chnlist"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -373,7 +373,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_gfwlist_url" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLGfwDomainList#>" value="<% nvram_get_x("","gfwlist_url"); %>">
+                                                    <input type="text" maxlength="256" class="input" size="256" name="gfwlist_url" style="width: 654px" placeholder="<#menu5_16_UpdateURLGfwDomainList#>" value="<% nvram_get_x("","gfwlist_url"); %>">
                                                 </div>
                                             </td>
                                         </tr>
@@ -381,7 +381,7 @@ function fill_ss_ipt2socks_status(status_code){
                                         <tr id="spoiler_custom_gfwlist" style="display:none;">
                                             <td colspan="6" style="text-align: center; border-top: 0 none;">
                                                 <div>
-                                                    <input type="text" maxlength="90" class="input" size="90" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_AddGfwDomains#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
+                                                    <input type="text" maxlength="512" class="input" size="512" name="ss_custom_gfwlist" style="width: 654px" placeholder="<#menu5_16_AddGfwDomains#>" value="<% nvram_get_x("","ss_custom_gfwlist"); %>">
                                                 </div>
                                             </td>
                                         </tr>
