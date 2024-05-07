@@ -459,16 +459,10 @@ init_sysctl(void)
 
 	set_interface_conf_int("ipv4", "all", "rp_filter", 0); // new logic for new kernels
 
-	fput_int("/proc/sys/vm/min_free_kbytes", KERNEL_MIN_FREE_KBYTES);
-#if BOARD_RAM_SIZE < 512
-	fput_int("/proc/sys/vm/lowmem_reserve_ratio", 256);
-#endif
-#if BOARD_RAM_SIZE > 128
+//	fput_int("/proc/sys/vm/min_free_kbytes", KERNEL_MIN_FREE_KBYTES);
+	fput_int("/proc/sys/vm/swappiness", 0);
 	fput_int("/proc/sys/vm/overcommit_memory", 1);
-#else
-	fput_int("/proc/sys/vm/overcommit_memory", 2);
-	fput_int("/proc/sys/vm/overcommit_ratio", KERNEL_OVERCOMMIT_RATIO);
-#endif
+	fput_int("/proc/sys/vm/oom_kill_allocating_task", 1);
 
 	fput_int("/proc/sys/net/core/somaxconn", KERNEL_NET_SOMAXCONN);
 	fput_int("/proc/sys/net/ipv4/tcp_max_syn_backlog", KERNEL_NET_SOMAXCONN);
