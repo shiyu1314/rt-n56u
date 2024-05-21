@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 
 #include "rc.h"
 
@@ -189,6 +190,50 @@ start_telnetd(void)
 	if (nvram_match("telnetd", "1"))
 		eval("telnetd");
 }
+
+#if defined(SUPPORT_ZRAM)
+int
+get_zram_disksize(void)
+{
+	int result = 0;
+	struct sysinfo info;
+	if (sysinfo(&info) == 0) {
+		result = (int)info.totalram;
+	}
+	return result;
+}
+
+void
+stop_zram(void)
+{
+	if (is_module_loaded("zram")) {
+		doSystem("swapoff /dev/zram0");
+		module_smart_unload("zram", 1);
+		fput_int("/proc/sys/vm/swappiness", 0);
+	}
+}
+
+void
+start_zram(void)
+{
+	int disksize = get_zram_disksize();
+	if (disksize) {
+		module_smart_load("zram", "num_devices=1");
+		sleep(1);
+		fput_int("/sys/block/zram0/disksize", disksize);
+		doSystem("mkswap /dev/zram0");
+		doSystem("swapon -p 32767 -d /dev/zram0");
+		fput_int("/proc/sys/vm/swappiness", 100);
+	}
+}
+
+void
+restart_zram(void)
+{
+	stop_zram();
+	start_zram();
+}
+#endif
 
 #if defined(APP_SSHD)
 int
@@ -566,6 +611,9 @@ restart_watchdog_cpu(void)
 int
 start_services_once(int is_ap_mode)
 {
+#if defined(SUPPORT_ZRAM)
+	start_zram();
+#endif
 	start_8021x_wl();
 	start_8021x_rt();
 	start_httpd(0);
@@ -658,6 +706,9 @@ stop_services(int stopall)
 	stop_infosvr();
 	stop_crond();
 	stop_igmpproxy(NULL);
+#if defined(SUPPORT_ZRAM)
+	stop_zram();
+#endif
 }
 
 void

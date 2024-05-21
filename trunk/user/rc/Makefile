@@ -141,6 +141,9 @@ endif
 ifdef CONFIG_RT3352_INIC_MII
 	cd $(INSTALLDIR)/sbin && ln -sf rc inicd
 endif
+ifeq ($(CONFIG_FIRMWARE_ENABLE_SWAP),y)
+	cd $(INSTALLDIR)/sbin && ln -sf rc restart_zram
+endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENVPN),y)
 	cd $(INSTALLDIR)/sbin && ln -sf rc ovpn_export_client
 endif

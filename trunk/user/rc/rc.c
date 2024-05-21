@@ -1813,6 +1813,11 @@ main(int argc, char **argv)
 	else if (!strcmp(base, "run_telnetd")) {
 		run_telnetd();
 	}
+#if defined(SUPPORT_ZRAM)
+	else if (!strcmp(base, "restart_zram")) {
+		restart_zram();
+	}
+#endif
 	else if (!strcmp(base, "run_ftpsamba")) {
 #if defined(APP_SMBD)
 		restart_smbd();

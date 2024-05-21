@@ -512,6 +512,12 @@ void restart_networkmap(void);
 void stop_telnetd(void);
 void run_telnetd(void);
 void start_telnetd(void);
+#if defined(SUPPORT_ZRAM)
+int get_zram_disksize(void);
+void stop_zram(void);
+void start_zram(void);
+void restart_zram(void);
+#endif
 #if defined (APP_SSHD)
 int is_sshd_run(void);
 void stop_sshd(void);

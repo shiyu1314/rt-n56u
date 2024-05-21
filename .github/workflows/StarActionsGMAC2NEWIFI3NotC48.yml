@@ -104,6 +104,7 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_TRANSMISSION_WEB_CONTROL"  "n" "设置BT工具Transmission网页界面" 
           ######################################################################################################
           SP "CONFIG_FIRMWARE_CPU_SLEEP"                         "n" "设置CPU休眠模式"
+          SP "CONFIG_FIRMWARE_ENABLE_SWAP"                       "y" "设置zRAM和SWAP文件/分区支持"
           SP "CONFIG_FIRMWARE_INCLUDE_HTTPS"                     "n" "设置网页界面HTTPS支持"
           SP "CONFIG_FIRMWARE_ENABLE_FUSE"                       "n" "设置FUSE用户空间文件系统"
           SP "CONFIG_FIRMWARE_INCLUDE_LPRD"                      "n" "设置LPR打印"

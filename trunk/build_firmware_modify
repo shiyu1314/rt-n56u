@@ -358,11 +358,18 @@ fi
 if [ "$CONFIG_FIRMWARE_ENABLE_FUSE" != "y" ] ; then
 	func_disable_kernel_param "CONFIG_FUSE_FS"
 fi
-############################# SWAP ####################################
+############################# zRAM SWAP ###############################
 if [ "$CONFIG_FIRMWARE_ENABLE_SWAP" != "y" ] ; then
+	func_disable_kernel_param "CONFIG_ZSMALLOC"
+	func_disable_kernel_param "CONFIG_PGTABLE_MAPPING"
 	func_disable_kernel_param "CONFIG_SWAP"
+	func_disable_kernel_param "CONFIG_ZRAM"
+	func_disable_kernel_param "CONFIG_ZRAM_DEBUG"
+	func_disable_kernel_param "CONFIG_LZO_COMPRESS"
+	func_disable_kernel_param "CONFIG_LZO_DECOMPRESS"
 	func_disable_busybox_param "CONFIG_MKSWAP"
-	func_disable_busybox_param "CONFIG_SWAPONOFF"
+	func_disable_busybox_param "CONFIG_SWAPON"
+	func_disable_busybox_param "CONFIG_SWAPOFF"
 fi
 ############################# NFSD ####################################
 # if [ "$CONFIG_FIRMWARE_INCLUDE_NFSD" != "y" ] ; then
