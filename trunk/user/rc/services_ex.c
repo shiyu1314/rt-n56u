@@ -601,16 +601,21 @@ write_smb_conf_header(void)
 	fprintf(fp, "log file = %s\n", "/var/log/samba.log");
 	fprintf(fp, "log level = 0\n");
 	fprintf(fp, "max log size = 5\n");
-	if (r_size != 0)
+	if (r_size != 0) {
 #if BOARD_HAS_5G_RADIO
-		nvram_set_int("wl_frag", w_mss);
-		nvram_set_int("wl_rts", w_rts);
+		if (nvram_get_int("wl_frag") != w_mss)
+			nvram_set_int("wl_frag", w_mss);
+		if (nvram_get_int("wl_rts") != w_rts)
+			nvram_set_int("wl_rts", w_rts);
 #endif
 #if BOARD_HAS_2G_RADIO
-		nvram_set_int("rt_frag", w_mss);
-		nvram_set_int("rt_rts", w_rts);
+		if (nvram_get_int("rt_frag") != w_mss)
+			nvram_set_int("rt_frag", w_mss);
+		if (nvram_get_int("rt_rts") != w_rts)
+			nvram_set_int("rt_rts", w_rts);
 #endif
 		fprintf(fp, "read size = %d\n", r_size);
+	}
 	if (m_xmit != 0)
 		fprintf(fp, "max xmit = %d\n", m_xmit);
 	if ((rmem_buf == 0) && (wmem_buf == 0)) {
