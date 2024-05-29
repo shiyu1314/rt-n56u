@@ -324,7 +324,9 @@ void start_sit_tunnel(int ipv6_type, char *wan_ifname, char *wan_addr4, char *wa
 		store_lan_addr6(addr6s);
 	}
 
-	set_vpn_balancing(IFNAME_SIT, 0);
+#if defined (USE_SMP)
+	set_vpn_balancing(IFNAME_SIT);
+#endif
 }
 
 void stop_sit_tunnel(void)

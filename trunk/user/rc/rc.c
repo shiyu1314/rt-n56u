@@ -1022,7 +1022,9 @@ init_router(void)
 #if defined (USE_IPV6)
 	init_ipv6();
 #endif
-	set_cpu_affinity(is_ap_mode);
+#if defined (USE_SMP)
+	set_cpu_affinity();
+#endif
 
 	start_detect_link();
 	start_detect_internet(0);

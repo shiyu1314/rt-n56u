@@ -423,7 +423,9 @@ ipup_vpns_main(int argc, char **argv)
 	/* add route to client's LAN */
 	vpns_route_to_remote_lan(peer_name, argv[1], NULL, 1);
 
-	set_vpn_balancing(argv[1], 1);
+#if defined (USE_SMP)
+	set_vpn_balancing(argv[1]);
+#endif
 
 	fp = fopen(VPN_SERVER_LEASE_FILE, "a+");
 	if (fp) {

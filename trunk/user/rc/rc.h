@@ -738,11 +738,8 @@ int stop_inicd(void);
 
 #if defined (USE_SMP)
 /* smp.c */
-void set_cpu_affinity(int is_ap_mode);
-void set_vpn_balancing(const char *vpn_ifname, int is_server);
-#else
-#define set_cpu_affinity(x)
-#define set_vpn_balancing(ptr,val)
+void set_cpu_affinity(void);
+void set_vpn_balancing(const char *vpn_ifname);
 #endif
 
 /* rstats.c */
