@@ -461,6 +461,7 @@ init_sysctl(void)
 
 //	fput_int("/proc/sys/vm/min_free_kbytes", KERNEL_MIN_FREE_KBYTES);
 	fput_int("/proc/sys/vm/swappiness", 0);
+	fput_int("/proc/sys/vm/extfrag_threshold", 0);
 	fput_int("/proc/sys/vm/overcommit_memory", 1);
 	fput_int("/proc/sys/vm/oom_kill_allocating_task", 1);
 
