@@ -9,6 +9,16 @@ config MT7603E_RLT_AP_SUPPORT
 config MT76X3_AP
 	tristate
 
+config  MT76X3_AP_LED_SOFT
+	bool "Soft LED support"
+	depends on MT76X3_AP && !MT7603E_LED_CONTROL_SUPPORT && RALINK_GPIO_LED
+	default n
+
+config  MT76X3_AP_LED_SOFT_GPIO
+	int "Soft LED GPIO pin"
+	depends on MT76X3_AP && MT76X3_AP_LED_SOFT
+	default -1
+
 #config RLT_AP_SUPPORT
 #	bool "7603"
 #	depends on MT7603E_RLT_AP_SUPPORT
