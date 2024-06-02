@@ -873,6 +873,7 @@ LED_CONTROL(int gpio_led, int flag)
 		case BOARD_GPIO_LED_USB2:
 #endif
 #if defined (USE_USB_SUPPORT)
+		is_soft_blink = 1;
 		front_led_x = nvram_get_int("front_led_usb");
 #else
 		front_led_x = 0;

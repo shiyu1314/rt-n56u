@@ -196,27 +196,33 @@ dl_handle_link_wisp(void)
 
 #if defined (BOARD_GPIO_LED_USB) && defined (USE_USB_SUPPORT)
 static void
-dl_handle_link_usb(int force_update)
+dl_handle_link_usb(int force_update, int front_led_usb)
 {
-	int front_led_usb = nvram_get_int("front_led_usb");
-
-	switch (front_led_usb)
-	{
-	case 2:
-		dl_status_usb = has_usb_devices();
-		break;
-	case 1:
-		dl_status_usb = is_usb_storage_mounted();
-		break;
-	case 0:
+	if (front_led_usb && (is_usb_storage_mounted() || has_usb_devices()))
+		dl_status_usb = 1;
+	else
 		dl_status_usb = 0;
-		break;
-	default:
-		return;
-	}
 
-	if (dl_status_usb_old != dl_status_usb || force_update) {
+	if (dl_status_usb_old != dl_status_usb || force_update || front_led_usb) {
 		dl_status_usb_old = dl_status_usb;
+		
+		if (dl_status_usb) {
+			int usb_led_gpio = BOARD_GPIO_LED_USB;
+#if defined (BOARD_GPIO_LED_USB2)
+			int usb2_led_gpio = BOARD_GPIO_LED_USB2;
+#if BOARD_USB_PORT_SWAP
+			usb_led_gpio = BOARD_GPIO_LED_USB2;
+			usb2_led_gpio = BOARD_GPIO_LED_USB;
+#endif
+			module_param_set_int("usbcore", "usb2_led_gpio", usb2_led_gpio);
+#endif
+			module_param_set_int("usbcore", "usb_led_gpio", usb_led_gpio);
+		} else {
+#if defined (BOARD_GPIO_LED_USB2)
+			module_param_set_int("usbcore", "usb2_led_gpio", -1);
+#endif
+			module_param_set_int("usbcore", "usb_led_gpio", -1);
+		}
 		
 #if defined (BOARD_GPIO_LED_USB2)
 		LED_CONTROL(BOARD_GPIO_LED_USB2, (dl_status_usb & 0x2) ? LED_ON : LED_OFF);
@@ -264,7 +270,7 @@ dl_on_timer(void)
 
 	dl_handle_link_lan();
 #if defined (BOARD_GPIO_LED_USB) && defined (USE_USB_SUPPORT)
-	dl_handle_link_usb(0);
+	dl_handle_link_usb(0, nvram_get_int("front_led_usb"));
 #endif
 }
 
@@ -312,33 +318,11 @@ dl_update_leds(void)
 	LED_CONTROL(BOARD_GPIO_LED_LAN, (dl_state) ? LED_ON : LED_OFF);
 #endif
 #if defined (BOARD_GPIO_LED_USB) && defined (USE_USB_SUPPORT)
-	front_led_x = nvram_get_int("front_led_usb");
 	if (nvram_get_int("front_led_all") == 0)
 		front_led_x = 0;
-	if (front_led_x == 3) {
-		int usb_led_gpio = BOARD_GPIO_LED_USB;
-#if defined (BOARD_GPIO_LED_USB2)
-		int usb2_led_gpio = BOARD_GPIO_LED_USB2;
-#if BOARD_USB_PORT_SWAP
-		usb_led_gpio = BOARD_GPIO_LED_USB2;
-		usb2_led_gpio = BOARD_GPIO_LED_USB;
-#endif
-		LED_CONTROL(BOARD_GPIO_LED_USB2, LED_OFF);
-		cpu_gpio_led_enabled(BOARD_GPIO_LED_USB2, 1);
-		module_param_set_int("usbcore", "usb2_led_gpio", usb2_led_gpio);
-#endif
-		LED_CONTROL(BOARD_GPIO_LED_USB, LED_OFF);
-		cpu_gpio_led_enabled(BOARD_GPIO_LED_USB, 1);
-		module_param_set_int("usbcore", "usb_led_gpio", usb_led_gpio);
-	} else {
-		module_param_set_int("usbcore", "usb_led_gpio", -1);
-		cpu_gpio_led_enabled(BOARD_GPIO_LED_USB, 0);
-#if defined (BOARD_GPIO_LED_USB2)
-		module_param_set_int("usbcore", "usb2_led_gpio", -1);
-		cpu_gpio_led_enabled(BOARD_GPIO_LED_USB2, 0);
-#endif
-		dl_handle_link_usb(1);
-	}
+	else
+		front_led_x = nvram_get_int("front_led_usb");
+	dl_handle_link_usb(1, front_led_x);
 #endif
 #if defined (BOARD_GPIO_LED_WIFI) && !defined (BOARD_K2P) && !defined (BOARD_PSG1218)
 	LED_CONTROL(BOARD_GPIO_LED_WIFI, LED_ON);
