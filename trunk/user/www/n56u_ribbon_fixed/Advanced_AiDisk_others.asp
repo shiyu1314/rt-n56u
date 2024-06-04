@@ -253,10 +253,10 @@ function pull_usb_share_list(obj,idx){
 function change_smb_enabled(){
 	var v = document.form.enable_samba[0].checked;
 	showhide_div('row_smb_wgrp', v);
-	showhide_div('row_smb_mxmit', v);
-	showhide_div('row_smb_rsize', v);
 	showhide_div('row_smb_rbuf', v);
 	showhide_div('row_smb_wbuf', v);
+	showhide_div('row_smb_rwraw', v);
+	showhide_div('row_smb_rwaio', v);
 	showhide_div('row_smb_mode', v);
 	showhide_div('row_smb_lmb', v);
 	showhide_div('row_smb_fp', v);
@@ -319,13 +319,9 @@ function validForm(){
 	document.form.st_samba_workgroup.value = document.form.st_samba_workgroup.value.Trim();
 
 	if(found_app_smbd()){
-		if(!validate_range(document.form.samba_r_size, 256, 2346))
+		if(!validate_range(document.form.samba_rmem_buf, 0, 131072))
 			return false;
-		if(!validate_range(document.form.samba_m_xmit, 0, 65535))
-			return false;
-		if(!validate_range(document.form.samba_rmem_buf, 0, 65535))
-			return false;
-		if(!validate_range(document.form.samba_wmem_buf, 0, 65535))
+		if(!validate_range(document.form.samba_wmem_buf, 0, 131072))
 			return false;
 	}
 
@@ -512,40 +508,44 @@ function done_validating(action){
                                                 <input type="text" name="st_samba_workgroup" class="input" maxlength="32" size="32" value="<% nvram_get_x("", "st_samba_workgroup"); %>"/>
                                             </td>
                                         </tr>
-                                        <tr id="row_smb_rsize">
-                                            <th>
-                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 13);"><#samba_rsize#></a>
-                                            </th>
-                                            <td>
-                                                <input type="text" name="samba_r_size" class="input" maxlength="4" size="4" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_r_size"); %>"/>
-                                                &nbsp;<span style="color:#888;">[256..2346]</span>
-                                            </td>
-                                        </tr>
-                                        <tr id="row_smb_mxmit">
-                                            <th>
-                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 14);"><#samba_mxmit#></a>
-                                            </th>
-                                            <td>
-                                                <input type="text" name="samba_m_xmit" class="input" maxlength="5" size="5" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_m_xmit"); %>"/>
-                                                &nbsp;<span style="color:#888;">[0..65535]</span>
-                                            </td>
-                                        </tr>
                                         <tr id="row_smb_rbuf">
                                             <th>
-                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 15);"><#samba_rmembuf#></a>
+                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 13);"><#samba_rmembuf#></a>
                                             </th>
                                             <td>
-                                                <input type="text" name="samba_rmem_buf" class="input" maxlength="5" size="5" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_rmem_buf"); %>"/>
-                                                &nbsp;<span style="color:#888;">[0..65535]</span>
+                                                <input type="text" name="samba_rmem_buf" class="input" maxlength="6" size="6" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_rmem_buf"); %>"/>
+                                                &nbsp;<span style="color:#888;">[0..131072]</span>
                                             </td>
                                         </tr>
                                         <tr id="row_smb_wbuf">
                                             <th>
-                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 16);"><#samba_wmembuf#></a>
+                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 14);"><#samba_wmembuf#></a>
                                             </th>
                                             <td>
-                                                <input type="text" name="samba_wmem_buf" class="input" maxlength="5" size="5" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_wmem_buf"); %>"/>
-                                                &nbsp;<span style="color:#888;">[0..65535]</span>
+                                                <input type="text" name="samba_wmem_buf" class="input" maxlength="6" size="6" placeholder="<#Config_Prudent#>" value="<% nvram_get_x("", "samba_wmem_buf"); %>"/>
+                                                &nbsp;<span style="color:#888;">[0..131072]</span>
+                                            </td>
+                                        </tr>
+                                        <tr id="row_smb_rwraw">
+                                            <th>
+                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 15);"><#samba_rwraw#></a>
+                                            </th>
+                                            <td>
+                                                <select name="samba_rw_raw" class="input">
+                                                    <option value="1" <% nvram_match_x("", "samba_rw_raw", "1", "selected"); %>><#checkbox_Yes#> (*)</option>
+                                                    <option value="0" <% nvram_match_x("", "samba_rw_raw", "0", "selected"); %>><#checkbox_No#></option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr id="row_smb_rwaio">
+                                            <th>
+                                                <a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this,17, 16);"><#samba_rwaio#></a>
+                                            </th>
+                                            <td>
+                                                <select name="samba_rw_aio" class="input">
+                                                    <option value="0" <% nvram_match_x("", "samba_rw_aio", "0", "selected"); %>><#checkbox_No#> (*)</option>
+                                                    <option value="1" <% nvram_match_x("", "samba_rw_aio", "1", "selected"); %>><#checkbox_Yes#></option>
+                                                </select>
                                             </td>
                                         </tr>
                                         <tr id="row_smb_mode">

@@ -546,17 +546,15 @@ FILE *
 write_smb_conf_header(void)
 {
 	FILE *fp;
-	int i_lmb, i_wins_enable, r_size, w_mss, w_rts, m_xmit, rmem_buf, wmem_buf;
+	int i_lmb, i_wins_enable, rmem_buf, wmem_buf, rw_raw, rw_aio;
 	char *p_computer_name, *p_workgroup, *p_res_order;
 
 	unlink(SAMBA_CONF);
 
-	r_size = nvram_get_int("samba_r_size");
-	w_mss = (r_size);
-	w_rts = (r_size + 1);
-	m_xmit = nvram_get_int("samba_m_xmit");
 	rmem_buf = nvram_get_int("samba_rmem_buf");
 	wmem_buf = nvram_get_int("samba_wmem_buf");
+	rw_raw = nvram_get_int("samba_rw_raw");
+	rw_aio = nvram_get_int("samba_rw_aio");
 	i_lmb = nvram_get_int("st_samba_lmb");
 	i_wins_enable = nvram_get_int("wins_enable");
 	p_workgroup = nvram_safe_get("st_samba_workgroup");
@@ -599,25 +597,10 @@ write_smb_conf_header(void)
 
 	fprintf(fp, "name resolve order = %s\n", p_res_order);
 	fprintf(fp, "log file = %s\n", "/var/log/samba.log");
-	fprintf(fp, "log level = 0\n");
-	fprintf(fp, "max log size = 5\n");
-	if (r_size != 0) {
-#if BOARD_HAS_5G_RADIO
-		if (nvram_get_int("wl_frag") != w_mss)
-			nvram_set_int("wl_frag", w_mss);
-		if (nvram_get_int("wl_rts") != w_rts)
-			nvram_set_int("wl_rts", w_rts);
-#endif
-#if BOARD_HAS_2G_RADIO
-		if (nvram_get_int("rt_frag") != w_mss)
-			nvram_set_int("rt_frag", w_mss);
-		if (nvram_get_int("rt_rts") != w_rts)
-			nvram_set_int("rt_rts", w_rts);
-#endif
-		fprintf(fp, "read size = %d\n", r_size);
-	}
-	if (m_xmit != 0)
-		fprintf(fp, "max xmit = %d\n", m_xmit);
+	fprintf(fp, "log level = %d\n", 0);
+	fprintf(fp, "max log size = %d\n", 5);
+	fprintf(fp, "max xmit = %d\n", 16644);
+
 	if ((rmem_buf == 0) && (wmem_buf == 0)) {
 		fprintf(fp, "socket options = TCP_NODELAY SO_KEEPALIVE\n");
 	} else if (rmem_buf == 0) {
@@ -627,6 +610,25 @@ write_smb_conf_header(void)
 	} else {
 		fprintf(fp, "socket options = TCP_NODELAY SO_KEEPALIVE SO_RCVBUF=%d SO_SNDBUF=%d\n", rmem_buf, wmem_buf);
 	}
+
+	if (rw_raw == 1) {
+		fprintf(fp, "read raw = %s\n", "yes");
+		fprintf(fp, "write raw = %s\n", "yes");
+	} else {
+		fprintf(fp, "read raw = %s\n", "no");
+		fprintf(fp, "write raw = %s\n", "no");
+	}
+
+	if (rw_aio == 1) {
+		fprintf(fp, "write cache size = %d\n", 262144);
+		fprintf(fp, "aio read size = %d\n", 16384);
+		fprintf(fp, "aio write size = %d\n", 16384);
+	} else {
+		fprintf(fp, "write cache size = %d\n", 0);
+		fprintf(fp, "aio read size = %d\n", 0);
+		fprintf(fp, "aio write size = %d\n", 0);
+	}
+
 	fprintf(fp, "unix charset = UTF8\n");
 	fprintf(fp, "display charset = UTF8\n");
 	fprintf(fp, "bind interfaces only = %s\n", "yes");
@@ -688,7 +690,7 @@ restart_nmbd(void)
 		doSystem("killall %s %s", "-SIGHUP", "smbd");
 	} else
 #endif
-	start_wins();
+		start_wins();
 }
 #endif
 

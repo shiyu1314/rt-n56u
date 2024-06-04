@@ -4,7 +4,7 @@ THISDIR := $(shell pwd)
 
 SMBCFLAGS := $(CFLAGS) -ffunction-sections -fdata-sections
 SMBLDFLAGS := $(LDFLAGS) -Wl,--gc-sections
-SMBCPPFLAGS := -DNDEBUG -DSHMEM_SIZE=524288 -Dfcntl=fcntl64 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE=1 -D_LARGEFILE64_SOURCE=1 -D_LARGE_FILES=1
+SMBCPPFLAGS := $(CPPFLAGS) -DNDEBUG -DSHMEM_SIZE=524288 -Dfcntl=fcntl64 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE=1 -D_LARGEFILE64_SOURCE=1 -D_LARGE_FILES=1
 MAKE_FLAGS := $(MAKEFLAGS) DYNEXP= PICFLAG= MODULES=
 
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SMBD_SYSLOG),y)
@@ -48,7 +48,6 @@ configure:
 	samba_cv_zlib_1_2_3=no \
 	ac_cv_path_PYTHON="" \
 	ac_cv_path_PYTHON_CONFIG="" \
-	PKG_CONFIG_PATH="$(STAGEDIR)/lib/pkgconfig" \
 	CPPFLAGS="$(SMBCPPFLAGS)" \
 	CFLAGS="$(SMBCFLAGS)" LDFLAGS="$(SMBLDFLAGS)" \
 	./configure \
@@ -71,18 +70,17 @@ configure:
 		--disable-static \
 		--disable-swat \
 		--disable-shared-libs \
-		--with-libiconv="$(STAGEDIR)/lib" \
 		--with-codepagedir=/usr/share/samba \
 		--with-configdir=/etc \
 		--with-included-iniparser \
 		--with-included-popt=no \
 		--with-rootsbindir=/sbin \
 		--with-lockdir=/var/locks \
-		--with-syslog \
 		--with-nmbdsocketdir=/var/nmbd \
 		--with-piddir=/var/run \
 		--with-privatedir=/etc/samba \
 		--with-sendfile-support \
+		--without-syslog \
 		--without-acl-support \
 		--without-cluster-support \
 		--without-ads \

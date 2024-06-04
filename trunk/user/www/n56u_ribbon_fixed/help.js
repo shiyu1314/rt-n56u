@@ -127,10 +127,10 @@ helpcontent[17] = new Array("",
 				"<#ShareNode_FTPLANG_itemdesc#>",
 				"<#StorageTorrent_itemdesc#>",
 				"<#StorageAria_itemdesc#>",
-				"<#Help_of_read_size#>",
-				"<#Help_of_max_xmit#>",
 				"<#Help_of_SO_RCVBUF#>",
-				"<#Help_of_SO_SNDBUF#>");
+				"<#Help_of_SO_SNDBUF#>",
+				"<#Help_of_rwraw#>",
+				"<#Help_of_rwaio#>");
 
 // MAC filter
 helpcontent[18] = new Array("",
