@@ -565,10 +565,10 @@ typedef struct _NDIS_802_11_STATISTICS {
 } NDIS_802_11_STATISTICS, *PNDIS_802_11_STATISTICS;
 
 typedef struct _MBSS_STATISTICS {
-	LONG TxCount;
-	ULONG RxCount;
-	ULONG ReceivedByteCount;
-	ULONG TransmittedByteCount;
+	UINT64 TxCount;
+	UINT64 RxCount;
+	UINT64 ReceivedByteCount;
+	UINT64 TransmittedByteCount;
 	ULONG RxErrorCount;
 	ULONG RxDropCount;
 	ULONG TxErrorCount;
@@ -1379,6 +1379,15 @@ typedef struct _RT_802_11_MAC_ENTRY {
 	UINT32 ConnectedTime;
 	MACHTTRANSMIT_SETTING TxRate;
 	UINT32 LastRxRate;
+
+//sync with WEB UI's structure for ioctl usage.
+#ifdef RTMP_RBUS_SUPPORT
+	SHORT StreamSnr[3];				/* BF SNR from RXWI. Units=0.25 dB. 22 dB offset removed */
+	SHORT SoundingRespSnr[3];			/* SNR from Sounding Response. Units=0.25 dB. 22 dB offset removed */
+/*	SHORT TxPER;	*/					/* TX PER over the last second. Percent */
+/*	SHORT reserved;*/
+#endif /* RTMP_RBUS_SUPPORT */
+
 } RT_802_11_MAC_ENTRY, *PRT_802_11_MAC_ENTRY;
 
 typedef struct _RT_802_11_MAC_TABLE {
