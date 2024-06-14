@@ -34,24 +34,8 @@ sed '/^regexp:/ s/$/:/' | sed 's/^regexp:/:/g' | \
 sed 's/^server=\///g' | sed 's/\/.*$//g' | sed 's/^\.//g' | \
 grep '\.' | sort -u > /tmp/gfwlist_domain.txt) || \
 curl -k -s --connect-timeout 5 --retry 3 \
-"https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt" | \
-base64 -d | \
-sed -n -r '{
-/^\[/d;
-/^!/d;
-/^@@/d;
-s/^\|https?:\/\///g;
-s/^\|\|//g;
-s/\/.*$//g;
-s/%.*$//g;
-s/^[0-9a-zA-Z]{0,128}\*[0-9a-zA-Z]{0,128}\.//g;
-s/\*.*$//g;
-s/^\.//g;
-s/\.$//g;
-/([0-9]{1,3}\.){3}[0-9]{1,3}/d;
-/.*\..*/!d;
-p
-}' | sort -u > /tmp/gfwlist_domain.txt
+"https://raw.githubusercontent.com/GH-X/rt-n56u/main/trunk/user/shadowsocks/gfwlist/gfwlist_domain.txt" | \
+sort -u > /tmp/gfwlist_domain.txt
 
 [ ! -d /etc/storage/gfwlist/ ] && mkdir /etc/storage/gfwlist/
 [ -s /tmp/gfwlist_domain.txt ] && mv -f /tmp/gfwlist_domain.txt /etc/storage/gfwlist/gfwlist_domain.txt && \

@@ -16,8 +16,8 @@ sed '/^regexp:/ s/$/:/' | sed 's/^regexp:/:/g' | \
 sed 's/^server=\///g' | sed 's/\/.*$//g' | sed 's/^\.//g' | \
 grep '\.' | sort -u > /tmp/chnlist_domain.txt || \
 curl -k -s --connect-timeout 5 --retry 3 \
-"https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf" | \
-awk -F/ '{print $2}' | sort -u > /tmp/chnlist_domain.txt
+"https://raw.githubusercontent.com/GH-X/rt-n56u/main/trunk/user/shadowsocks/chnlist/chnlist_domain.txt" | \
+sort -u > /tmp/chnlist_domain.txt
 
 [ ! -d /etc/storage/chnlist/ ] && mkdir /etc/storage/chnlist/
 [ -s /tmp/chnlist_domain.txt ] && mv -f /tmp/chnlist_domain.txt /etc/storage/chnlist/chnlist_domain.txt && \
