@@ -22,6 +22,7 @@ local_link="/var/ss-local"
 #$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
 #$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
 #$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/naive or $SYSB_DIR/naive
+#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/hysteria2 or $SYSB_DIR/hysteria2
 v2rp_bin="v2ray-plugin"
 v2rp_link="/var/v2ray-plugin"
 #$SYSB_DIR/v2ray-plugin -> /var/v2ray-plugin -> $EXTB_DIR/v2ray-plugin or $SYSB_DIR/ss-v2ray-plugin
@@ -73,6 +74,7 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ "$ssp_type" == "2" ] && bin_type="Trojan"
 [ "$ssp_type" == "3" ] && bin_type="VMess"
 [ "$ssp_type" == "4" ] && bin_type="Naive"
+[ "$ssp_type" == "5" ] && bin_type="Hysteria2"
 [ "$ssp_type" == "8" ] && bin_type="Custom"
 [ "$ssp_type" == "9" ] && bin_type="Auto"
 [ "$ss_socks" == "1" ] && ssp_ubin="$local_bin" || ssp_ubin="$redir_bin"
@@ -80,6 +82,7 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ -e "$EXTB_DIR/$sspbinname" ] && chmod +x $EXTB_DIR/$sspbinname && ssp_custom="$EXTB_DIR/$sspbinname" || ssp_custom="$SYSB_DIR/$sspbinname"
 [ -e "$EXTB_DIR/trojan" ] && chmod +x $EXTB_DIR/trojan && ssp_trojan="$EXTB_DIR/trojan" || ssp_trojan="$SYSB_DIR/trojan"
 [ -e "$EXTB_DIR/naive" ] && chmod +x $EXTB_DIR/naive && ssp_naive="$EXTB_DIR/naive" || ssp_naive="$SYSB_DIR/naive"
+[ -e "$EXTB_DIR/hysteria2" ] && chmod +x $EXTB_DIR/hysteria2 && ssp_hysteria2="$EXTB_DIR/hysteria2" || ssp_hysteria2="$SYSB_DIR/hysteria2"
 [ -e "$EXTB_DIR/v2ray" ] && chmod +x $EXTB_DIR/v2ray && ssp_v2ray="$EXTB_DIR/v2ray" || ssp_v2ray="$SYSB_DIR/v2ray"
 [ -e "$EXTB_DIR/v2ray-plugin" ] && chmod +x $EXTB_DIR/v2ray-plugin && ssp_v2rp="$EXTB_DIR/v2ray-plugin" || ssp_v2rp="$SYSB_DIR/ss-v2ray-plugin"
 [ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
@@ -227,6 +230,7 @@ del_json_file()
 {
 logger -st "SSP[$$]$bin_type" "清除配置文件"
 rm -rf $CONF_DIR/*.md5
+rm -rf $CONF_DIR/*.toml
 rm -rf $CONF_DIR/*.json
 rm -rf $CONF_DIR/*-jsonlist
 rm -rf $CONF_DIR/Nodes-list
@@ -293,16 +297,16 @@ turn_json_file()
 [ -e "$CONF_DIR/ssp_custom.md5" ] && md5sum -c -s $CONF_DIR/ssp_custom.md5 || return 1
 [ -e "$CONF_DIR/Nodes-list.md5" ] && rm -rf $CONF_DIR/Nodes-list && for i in $(seq 1 $nodesnum); do
   j=$(expr $i - 1)
-  node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4
-  server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive
-  server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive
-  server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive
-  server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess
+  node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4     5
+  server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive hysteria2
+  server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive hysteria2
+  server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive hysteria2
+  server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess       hysteria2
   ss_method=$(nvram get ss_method_x$j)           # SS SSR        VMess
-  ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive
+  ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive hysteria2
   ss_proto_param=$(nvram get ss_proto_param_x$j) #    SSR        VMess
-  ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess
-  ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess
+  ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess       hysteria2
+  ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess       hysteria2
   echo "$i#$node_type#$server_addr#$server_port#$server_key#$server_sni#$ss_method#$ss_protocol#$ss_proto_param#$ss_obfs#$ss_obfs_param" >> $CONF_DIR/Nodes-list
 done && md5sum -c -s $CONF_DIR/Nodes-list.md5 || return 1
 [ "$(cat $CONF_DIR/$bin_type-jsonlist 2>/dev/null | wc -l)" != "1" ] || return 0
@@ -329,7 +333,7 @@ fi
 
 gen_json_file()
 {
-[ "$bin_type" == "Custom" ] || [ $nodesnum -ge 1 ] || $(stop_ssp "请到[节点设置]添加服务器" && return 1) || exit 1
+[ "$bin_type" == "Custom" ] || [ "$nodesnum" -ge "1" ] || $(stop_ssp "请到[节点设置]添加服务器" && return 1) || exit 1
 confoptarg=$(cat /etc/storage/ssp_custom.conf | grep '^confoptarg' | awk -F\| '{print $2}')
 serveraddr=$(cat /etc/storage/ssp_custom.conf | grep '^serveraddr' | awk -F\| '{print $2}')
 serverport=$(cat /etc/storage/ssp_custom.conf | grep '^serverport' | awk -F\| '{print $2}')
@@ -340,16 +344,16 @@ if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
   logger -st "SSP[$$]$bin_type" "创建配置文件"
   for i in $(seq 1 $nodesnum); do
     j=$(expr $i - 1)
-    node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4
-    server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive
-    server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive
-    server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive
-    server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess
+    node_type=$(nvram get ss_server_type_x$j)      # 0  1   2      3     4     5
+    server_addr=$(nvram get ss_server_addr_x$j)    # SS SSR Trojan VMess Naive hysteria2
+    server_port=$(nvram get ss_server_port_x$j)    # SS SSR Trojan VMess Naive hysteria2
+    server_key=$(nvram get ss_server_key_x$j)      # SS SSR Trojan VMess Naive hysteria2
+    server_sni=$(nvram get ss_server_sni_x$j)      #        Trojan VMess       hysteria2
     ss_method=$(nvram get ss_method_x$j)           # SS SSR        VMess
-    ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive
+    ss_protocol=$(nvram get ss_protocol_x$j)       #    SSR        VMess Naive hysteria2
     ss_proto_param=$(nvram get ss_proto_param_x$j) #    SSR        VMess
-    ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess
-    ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess
+    ss_obfs=$(nvram get ss_obfs_x$j)               # SS SSR        VMess       hysteria2
+    ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess       hysteria2
     addr_isip_noip $server_addr
     echo "$i#$node_type#$server_addr#$server_port#$server_key#$server_sni#$ss_method#$ss_protocol#$ss_proto_param#$ss_obfs#$ss_obfs_param" >> $CONF_DIR/Nodes-list
     [ "$node_type" == "0" ] && server_type="SS"
@@ -357,6 +361,7 @@ if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
     [ "$node_type" == "2" ] && server_type="Trojan"
     [ "$node_type" == "3" ] && server_type="VMess"
     [ "$node_type" == "4" ] && server_type="Naive"
+    [ "$node_type" == "5" ] && server_type="Hysteria2"
     if [ "$server_type" == "SS" ]; then
       if [ "$ss_obfs" == "v2ray_plugin_websocket" ]; then
         ss_pm="v2rp-WEBS" && ss_plugin="$v2rp_bin"
@@ -420,11 +425,7 @@ EOF
 
 EOF
     elif [ "$server_type" == "Trojan" ]; then
-      if [ "$server_sni" == "" ]; then
-        verifyhostname="false"
-      else
-        verifyhostname="true"
-      fi
+      [ "$server_sni" == "" ] && verifyhostname="false" || verifyhostname="true"
       r_json_file="$i-$server_type-redir.json"
       l_json_file="$i-$server_type-local.json"
       echo "$server_addr#$server_port#$r_json_file#$l_json_file#null" >> $CONF_DIR/Trojan-jsonlist
@@ -486,6 +487,74 @@ EOF
   "proxy": "$ss_protocol://$server_key@$server_addr:$server_port",
   "log": "$ubin_log_file"
 }
+
+EOF
+    elif [ "$server_type" == "Hysteria2" ]; then
+      [ "$server_sni" == "" ] && verifyhostname="false" || verifyhostname="true"
+      r_json_file="$i-$server_type-redir.toml"
+      l_json_file="$i-$server_type-local.toml"
+      echo "$server_addr#$server_port#$r_json_file#$l_json_file#null" >> $CONF_DIR/Hysteria2-jsonlist
+      echo "$server_addr#$server_port#$r_json_file#$l_json_file#null" >> $CONF_DIR/Auto-jsonlist
+      # redir
+      cat >> "$CONF_DIR/$r_json_file" << EOF
+server = "$server_addr:$server_port"
+auth = "$server_key"
+
+[tls]
+sni = "$server_sni"
+insecure = $verifyhostname
+
+EOF
+      [ "$ss_protocol" == "udp" ] && cat >> "$CONF_DIR/$r_json_file" << EOF
+[transport]
+type = "$ss_protocol"
+
+  [transport.$ss_protocol]
+  hopInterval = "30s"
+
+EOF
+      [ "$ss_obfs" == "salamander" ] && cat >> "$CONF_DIR/$r_json_file" << EOF
+[obfs]
+type = "$ss_obfs"
+
+  [obfs.$ss_obfs]
+  password = "$ss_obfs_param"
+
+EOF
+      cat >> "$CONF_DIR/$r_json_file" << EOF
+[tcpRedirect]
+listen = "0.0.0.0:$ss_local_port"
+
+EOF
+      # local
+      cat >> "$CONF_DIR/$l_json_file" << EOF
+server = "$server_addr:$server_port"
+auth = "$server_key"
+
+[tls]
+sni = "$server_sni"
+insecure = $verifyhostname
+
+EOF
+      [ "$ss_protocol" == "udp" ] && cat >> "$CONF_DIR/$l_json_file" << EOF
+[transport]
+type = "$ss_protocol"
+
+  [transport.$ss_protocol]
+  hopInterval = "30s"
+
+EOF
+      [ "$ss_obfs" == "salamander" ] && cat >> "$CONF_DIR/$l_json_file" << EOF
+[obfs]
+type = "$ss_obfs"
+
+  [obfs.$ss_obfs]
+  password = "$ss_obfs_param"
+
+EOF
+      cat >> "$CONF_DIR/$l_json_file" << EOF
+[socks5]
+listen = "0.0.0.0:$ss_local_port"
 
 EOF
     elif [ "$server_type" == "VMess" ]; then
@@ -813,6 +882,9 @@ elif [ "$ssp_server_type" == "Trojan" ]; then
 elif [ "$ssp_server_type" == "Naive" ]; then
   $([ -x "$ssp_naive" ] && ln -sf $ssp_naive $redir_link && ln -sf $ssp_naive $local_link) || \
   $(stop_ssp "请上传 naive 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
+elif [ "$ssp_server_type" == "Hysteria2" ]; then
+  $([ -x "$ssp_hysteria2" ] && ln -sf $ssp_hysteria2 $redir_link && ln -sf $ssp_hysteria2 $local_link) || \
+  $(stop_ssp "请上传 hysteria2 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
 elif [ "$ssp_server_type" == "VMess" ]; then
   $([ -x "$ssp_v2ray" ] && ln -sf $ssp_v2ray $redir_link && ln -sf $ssp_v2ray $local_link) || \
   $(stop_ssp "请上传 v2ray 可执行文件到 $EXTB_DIR/" && return 1) || exit 1
@@ -951,7 +1023,7 @@ fi
 
 start_rules()
 {
-[ $(tail -n +1 "$startrules" 2>/dev/null) -eq 1 ] || return 0
+[ "$(tail -n +1 "$startrules" 2>/dev/null)" -eq "1" ] || return 0
 cat > "$rulesstart" << EOF
 #!/bin/sh
 
@@ -1012,14 +1084,14 @@ return 0
 start_ssp()
 {
 ulimit -n 65536
-[ $(tail -n +1 "$errorcount" 2>/dev/null) -ge 1 ] && scron 1 && exit 0
+[ "$(tail -n +1 "$errorcount" 2>/dev/null)" -ge "1" ] && scron 1 && exit 0
 $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_start_ssp') || stop_watchcat
 gen_json_file
 start_socks || stop_socks
 start_redir || $(echo "1" > $errorcount && logger -st "SSP[$$]WARNING" "启动代理进程出错")
 start_rules || $(echo "1" > $errorcount && logger -st "SSP[$$]WARNING" "开启透明代理出错")
 echo "$ssp_server_snum#$ssp_server_type#$ssp_server_addr#$ssp_server_port" > $issjfinfor
-[ $(tail -n +1 "$errorcount" 2>/dev/null) -ge 1 ] && scron 1 && exit 0
+[ "$(tail -n +1 "$errorcount" 2>/dev/null)" -ge "1" ] && scron 1 && exit 0
 sleep 1 && pidof ss-watchcat.sh &>/dev/null && STA_LOG="重启完成" || $SYSB_DIR/ss-watchcat.sh
 logger -st "SSP[$(pidof $ssp_ubin)]$ssp_server_type" "节点$ssp_server_snum[$ssp_server_addr:$ssp_server_port]${STA_LOG:=成功启动}" && scron 1
 notify_detect_internet

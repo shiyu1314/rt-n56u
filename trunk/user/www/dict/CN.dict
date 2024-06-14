@@ -871,6 +871,7 @@ menu5_16_Obfuscation=混淆方式:
 menu5_16_PluginType=插件类型:
 menu5_16_MasqueradeType=伪装类型:
 menu5_16_ObfuscationParam=混淆参数:
+menu5_16_ObfuscationKey=混淆密码:
 menu5_16_PluginOptions=插件选项:
 menu5_16_MasqueradeDomain=伪装域名:
 menu5_18=mentohust

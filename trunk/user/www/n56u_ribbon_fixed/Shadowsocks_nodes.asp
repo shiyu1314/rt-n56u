@@ -55,7 +55,7 @@ function initial(){
 }
 
 function change_server_type(){
-	var st = document.form.ss_server_type_x_0.value; //0=ss 1=ssr 2=trojan 3=vmess 4=naive
+	var st = document.form.ss_server_type_x_0.value; //0=ss 1=ssr 2=trojan 3=vmess 4=naive 5=hysteria2
 	var md = document.form.ss_method_x_0.value;
 	var pl = document.form.ss_protocol_x_0.value;
 	var os = document.form.ss_obfs_x_0.value;
@@ -171,11 +171,21 @@ function change_server_type(){
 		&& (pl != "quic")){
 			document.form.ss_protocol_x_0.value = "https";
 		}
+	}else if(st == 5){
+		document.form.ss_method_x_0.value = "";
+		document.form.ss_proto_param_x_0.value = "";
+		if((pl != "udp")){
+			document.form.ss_protocol_x_0.value = "udp";
+		}
+		if((os != "none")
+		&& (os != "salamander")){
+			document.form.ss_obfs_x_0.value = "none";
+		}
 	}
 	var md = document.form.ss_method_x_0.value;
 	var pl = document.form.ss_protocol_x_0.value;
 	var os = document.form.ss_obfs_x_0.value;
-	showhide_div('row_013_m', ((st != 2) && (st != 4)));
+	showhide_div('row_013_m', ((st != 2) && (st != 4) && (st != 5)));
 	showhide_div('row_3_m_o_chacha20poly1305', (st == 3));
 	showhide_div('row_03_m_o_aes128gcm', ((st == 0) || (st == 3)));
 	showhide_div('row_0_m_o_aes192gcm', (st == 0));
@@ -201,7 +211,7 @@ function change_server_type(){
 	showhide_div('row_01_m_o_chacha20ietf', ((st == 0) || (st == 1)));
 	showhide_div('row_01_mnote', ((st == 0) || (st == 1)));
 	showhide_div('row_3_mnote', (st == 3));
-	showhide_div('row_134_p', ((st == 1) || (st == 3) || (st == 4)));
+	showhide_div('row_1345_p', ((st == 1) || (st == 3) || (st == 4) || (st == 5)));
 	showhide_div('row_1_p_o_origin', (st == 1));
 	showhide_div('row_1_p_o_authsha1', (st == 1));
 	showhide_div('row_1_p_o_authsha1v2', (st == 1));
@@ -216,23 +226,25 @@ function change_server_type(){
 	showhide_div('row_3_p_o_tcptls', (st == 3));
 	showhide_div('row_4_p_o_https', (st == 4));
 	showhide_div('row_4_p_o_quic', (st == 4));
+	showhide_div('row_5_p_o_udp', (st == 5));
 	showhide_div('row_1_pnote', (st == 1));
 	showhide_div('row_3_pnote', (st == 3));
 	showhide_div('row_4_pnote', (st == 4));
+	showhide_div('row_5_pnote', (st == 5));
 	showhide_div('row_13_pp', ((st == 1) || (st == 3)));
 	showhide_div('row_1_ppmenu', (st == 1));
 	showhide_div('row_3_ppmenu', (st == 3));
 	showhide_div('row_1_ppnote', (st == 1));
 	showhide_div('row_3_ppnote', (st == 3));
-	showhide_div('row_013_o', ((st != 2) && (st != 4)));
+	showhide_div('row_0135_o', ((st != 2) && (st != 4)));
 	showhide_div('row_0_omenu', (st == 0));
-	showhide_div('row_1_omenu', (st == 1));
+	showhide_div('row_15_omenu', ((st == 1) || (st == 5)));
 	showhide_div('row_3_omenu', (st == 3));
 	showhide_div('row_1_o_o_plain', (st == 1));
 	showhide_div('row_1_o_o_httpsimple', (st == 1));
 	showhide_div('row_1_o_o_httppost', (st == 1));
 	showhide_div('row_1_o_o_tls1.2ticketauth', (st == 1));
-	showhide_div('row_03_o_o_none', ((st == 0) || (st == 3)));
+	showhide_div('row_035_o_o_none', ((st == 0) || (st == 3) || (st == 5)));
 	showhide_div('row_0_o_o_v2raypluginwebsocket', (st == 0));
 	showhide_div('row_0_o_o_v2raypluginquic', (st == 9));
 	showhide_div('row_3_o_o_http', ((st == 3) && (pl == "tcp")));
@@ -241,17 +253,20 @@ function change_server_type(){
 	showhide_div('row_3_o_o_wechatvideo', ((st == 3) && ((pl == "kcp") || (pl == "quic"))));
 	showhide_div('row_3_o_o_dtls', ((st == 3) && ((pl == "kcp") || (pl == "quic"))));
 	showhide_div('row_3_o_o_wireguard', ((st == 3) && ((pl == "kcp") || (pl == "quic"))));
+	showhide_div('row_5_o_o_salamander', (st == 5));
 	showhide_div('row_0_onote', (st == 0));
-	showhide_div('row_1_onote', (st == 1));
+	showhide_div('row_15_onote', ((st == 1) || (st == 5)));
 	showhide_div('row_3_onote', (st == 3));
-	showhide_div('row_013_op', (((st == 0) && (os != "none")) || (st == 1) || (st == 3)));
+	showhide_div('row_0135_op', (((st == 0) && (os != "none")) || (st == 1) || (st == 3) || ((st == 5) && (os == "salamander"))));
 	showhide_div('row_0_opmenu', ((st == 0) && (os != "none")));
 	showhide_div('row_1_opmenu', (st == 1));
 	showhide_div('row_3_opmenu', (st == 3));
+	showhide_div('row_5s_opmenu', ((st == 5) && (os == "salamander")));
 	showhide_div('row_0_opnote', ((st == 0) && (os != "none")));
 	showhide_div('row_1_opnote', (st == 1));
 	showhide_div('row_3_opnote', (st == 3));
-	showhide_div('row_23_sni', ((st == 2) || ((st == 3) && ((pl == "ws_tls") || (pl == "tcp_tls")))));
+	showhide_div('row_5s_opnote', ((st == 5) && (os == "salamander")));
+	showhide_div('row_235_sni', ((st == 2) || ((st == 3) && ((pl == "ws_tls") || (pl == "tcp_tls"))) || (st == 5)));
 }
 
 function applyRule(){
@@ -313,6 +328,8 @@ function showMRULESList(){
 				ssservertype="VMess";
 			}else if(m_list[i][0] == 4){
 				ssservertype="Naive";
+			}else if(m_list[i][0] == 5){
+				ssservertype="Hysteria2";
 			}else{
 				ssservertype="unknown";
 			}
@@ -412,7 +429,7 @@ function showMRULESList(){
                                                 <input type="text" maxlength="48" class="input" size="48" name="ss_server_addr_x_0" style="width: 333px" placeholder="<#menu5_16_ExampleAddr#>" value="<% nvram_get_x("","ss_server_addr_x_0"); %>">
                                             </td>
                                             <td width="22%">
-                                                <input type="text" maxlength="6" class="input" size="6" name="ss_server_port_x_0" style="width: 135px" placeholder="<#menu5_16_ExamplePort#>" value="<% nvram_get_x("","ss_server_port_x_0"); %>">
+                                                <input type="text" maxlength="48" class="input" size="48" name="ss_server_port_x_0" style="width: 135px" placeholder="<#menu5_16_ExamplePort#>" value="<% nvram_get_x("","ss_server_port_x_0"); %>">
                                             </td>
                                         </tr>
 
@@ -424,6 +441,7 @@ function showMRULESList(){
                                                 <select name="ss_server_type_x_0" class="input" style="width: 145px" onchange="change_server_type();">
                                                     <option value="2" <% nvram_match_x("","ss_server_type_x_0", "2","selected"); %>>Trojan</option>
                                                     <option value="4" <% nvram_match_x("","ss_server_type_x_0", "4","selected"); %>>Naive</option>
+                                                    <option value="5" <% nvram_match_x("","ss_server_type_x_0", "5","selected"); %>>Hysteria2</option>
                                                     <option value="0" <% nvram_match_x("","ss_server_type_x_0", "0","selected"); %>>SS</option>
                                                     <option value="1" <% nvram_match_x("","ss_server_type_x_0", "1","selected"); %>>SSR</option>
                                                     <option value="3" <% nvram_match_x("","ss_server_type_x_0", "3","selected"); %>>VMess</option>
@@ -459,10 +477,11 @@ function showMRULESList(){
                                                     <option id="row_01_m_o_chacha20ietf" style="display:none;" value="chacha20-ietf" <% nvram_match_x("","ss_method_x_0", "chacha20-ietf","selected"); %>>chacha20-ietf</option> <!--ss ssr-->
                                                 </select>
                                             </td>
-                                            <td width="22%" id="row_01_mnote" style="display:none;">..method</td> <td width="22%" id="row_3_mnote" style="display:none;">..security</td>
+                                            <td width="22%" id="row_01_mnote" style="display:none;">..method</td>
+                                            <td width="22%" id="row_3_mnote" style="display:none;">..security</td>
                                         </tr>
 
-                                        <tr id="row_134_p" style="display:none;"> <th width="22%"><#menu5_16_TransferProtocol#></th>
+                                        <tr id="row_1345_p" style="display:none;"> <th width="22%"><#menu5_16_TransferProtocol#></th>
                                             <td>
                                                 <select name="ss_protocol_x_0" class="input" style="width: 342px" onchange="change_server_type();">   
                                                     <option id="row_1_p_o_origin" style="display:none;" value="origin" <% nvram_match_x("","ss_protocol_x_0", "origin","selected"); %>>origin</option> <!--ssr-->
@@ -479,26 +498,36 @@ function showMRULESList(){
                                                     <option id="row_3_p_o_tcptls" style="display:none;" value="tcp_tls" <% nvram_match_x("","ss_protocol_x_0", "tcp_tls","selected"); %>>tcp+tls</option> <!--vmess-->
                                                     <option id="row_4_p_o_https" style="display:none;" value="https" <% nvram_match_x("","ss_protocol_x_0", "https","selected"); %>>https</option> <!--naive-->
                                                     <option id="row_4_p_o_quic" style="display:none;" value="quic" <% nvram_match_x("","ss_protocol_x_0", "quic","selected"); %>>quic</option> <!--naive-->
+                                                    <option id="row_5_p_o_udp" style="display:none;" value="udp" <% nvram_match_x("","ss_protocol_x_0", "udp","selected"); %>>udp</option> <!--hysteria2-->
                                                 </select>
                                             </td>
-                                            <td width="22%" id="row_1_pnote" style="display:none;">..protocol</td> <td width="22%" id="row_3_pnote" style="display:none;">..network</td> <td width="22%" id="row_4_pnote" style="display:none;">..proto</td>
+                                            <td width="22%" id="row_1_pnote" style="display:none;">..protocol</td>
+                                            <td width="22%" id="row_3_pnote" style="display:none;">..network</td>
+                                            <td width="22%" id="row_4_pnote" style="display:none;">..proto</td>
+                                            <td width="22%" id="row_5_pnote" style="display:none;">..transport</td>
                                         </tr>
 
-                                        <tr id="row_13_pp" style="display:none;"> <th width="22%" id="row_1_ppmenu" style="display:none;"><#menu5_16_ProtocolParam#></th> <th width="22%" id="row_3_ppmenu" style="display:none;"><#menu5_16_ProtocolPath#></th>
+                                        <tr id="row_13_pp" style="display:none;">
+                                            <th width="22%" id="row_1_ppmenu" style="display:none;"><#menu5_16_ProtocolParam#></th>
+                                            <th width="22%" id="row_3_ppmenu" style="display:none;"><#menu5_16_ProtocolPath#></th>
                                             <td>
                                                 <input type="text" maxlength="64" class="input" size="64" name="ss_proto_param_x_0" style="width: 333px" value="<% nvram_get_x("","ss_proto_param_x_0"); %>">
                                             </td>
-                                            <td width="22%" id="row_1_ppnote" style="display:none;">..protocol_param</td> <td width="22%" id="row_3_ppnote" style="display:none;">..path</td>
+                                            <td width="22%" id="row_1_ppnote" style="display:none;">..protocol_param</td>
+                                            <td width="22%" id="row_3_ppnote" style="display:none;">..path</td>
                                         </tr>
 
-                                        <tr id="row_013_o" style="display:none;"> <th width="22%" id="row_0_omenu" style="display:none;"><#menu5_16_PluginType#></th> <th width="22%" id="row_1_omenu" style="display:none;"><#menu5_16_Obfuscation#></th> <th width="22%" id="row_3_omenu" style="display:none;"><#menu5_16_MasqueradeType#></th>
+                                        <tr id="row_0135_o" style="display:none;">
+                                            <th width="22%" id="row_0_omenu" style="display:none;"><#menu5_16_PluginType#></th>
+                                            <th width="22%" id="row_15_omenu" style="display:none;"><#menu5_16_Obfuscation#></th>
+                                            <th width="22%" id="row_3_omenu" style="display:none;"><#menu5_16_MasqueradeType#></th>
                                             <td>
                                                 <select name="ss_obfs_x_0" class="input" style="width: 342px" onchange="change_server_type();">   
                                                     <option id="row_1_o_o_plain" style="display:none;" value="plain" <% nvram_match_x("","ss_obfs_x_0", "plain","selected"); %>>plain</option> <!--ssr-->
                                                     <option id="row_1_o_o_httpsimple" style="display:none;" value="http_simple" <% nvram_match_x("","ss_obfs_x_0", "http_simple","selected"); %>>http_simple</option> <!--ssr-->
                                                     <option id="row_1_o_o_httppost" style="display:none;" value="http_post" <% nvram_match_x("","ss_obfs_x_0", "http_post","selected"); %>>http_post</option> <!--ssr-->
                                                     <option id="row_1_o_o_tls1.2ticketauth" style="display:none;" value="tls1.2_ticket_auth" <% nvram_match_x("","ss_obfs_x_0", "tls1.2_ticket_auth","selected"); %>>tls1.2_ticket_auth</option> <!--ssr-->
-                                                    <option id="row_03_o_o_none" style="display:none;" value="none" <% nvram_match_x("","ss_obfs_x_0", "none","selected"); %>>none</option> <!--ss vmess-->
+                                                    <option id="row_035_o_o_none" style="display:none;" value="none" <% nvram_match_x("","ss_obfs_x_0", "none","selected"); %>>none</option> <!--ss vmess-->
                                                     <option id="row_0_o_o_v2raypluginwebsocket" style="display:none;" value="v2ray_plugin_websocket" <% nvram_match_x("","ss_obfs_x_0", "v2ray_plugin_websocket","selected"); %>>v2ray_plugin_websocket</option> <!--ss-->
                                                     <option id="row_0_o_o_v2raypluginquic" style="display:none;" value="v2ray_plugin_quic" <% nvram_match_x("","ss_obfs_x_0", "v2ray_plugin_quic","selected"); %>>v2ray_plugin_quic</option> <!--ss-->
                                                     <option id="row_3_o_o_http" style="display:none;" value="http" <% nvram_match_x("","ss_obfs_x_0", "http","selected"); %>>http</option> <!--vmess-->
@@ -507,19 +536,29 @@ function showMRULESList(){
                                                     <option id="row_3_o_o_wechatvideo" style="display:none;" value="wechat-video" <% nvram_match_x("","ss_obfs_x_0", "wechat-video","selected"); %>>wechat-video</option> <!--vmess-->
                                                     <option id="row_3_o_o_dtls" style="display:none;" value="dtls" <% nvram_match_x("","ss_obfs_x_0", "dtls","selected"); %>>dtls</option> <!--vmess-->
                                                     <option id="row_3_o_o_wireguard" style="display:none;" value="wireguard" <% nvram_match_x("","ss_obfs_x_0", "wireguard","selected"); %>>wireguard</option> <!--vmess-->
+                                                    <option id="row_5_o_o_salamander" style="display:none;" value="salamander" <% nvram_match_x("","ss_obfs_x_0", "salamander","selected"); %>>salamander</option> <!--hysteria2-->
                                                 </select>
                                             </td>
-                                            <td width="22%" id="row_0_onote" style="display:none;">..plugin</td> <td width="22%" id="row_1_onote" style="display:none;">..obfs</td> <td width="22%" id="row_3_onote" style="display:none;">..type</td>
+                                            <td width="22%" id="row_0_onote" style="display:none;">..plugin</td>
+                                            <td width="22%" id="row_15_onote" style="display:none;">..obfs</td>
+                                            <td width="22%" id="row_3_onote" style="display:none;">..type</td>
                                         </tr>
 
-                                        <tr id="row_013_op" style="display:none;"> <th width="22%" id="row_0_opmenu" style="display:none;"><#menu5_16_PluginOptions#></th> <th width="22%" id="row_1_opmenu" style="display:none;"><#menu5_16_ObfuscationParam#></th> <th width="22%" id="row_3_opmenu" style="display:none;"><#menu5_16_MasqueradeDomain#></th>
+                                        <tr id="row_0135_op" style="display:none;">
+                                            <th width="22%" id="row_0_opmenu" style="display:none;"><#menu5_16_PluginOptions#></th>
+                                            <th width="22%" id="row_1_opmenu" style="display:none;"><#menu5_16_ObfuscationParam#></th>
+                                            <th width="22%" id="row_3_opmenu" style="display:none;"><#menu5_16_MasqueradeDomain#></th>
+                                            <th width="22%" id="row_5s_opmenu" style="display:none;"><#menu5_16_ObfuscationKey#></th>
                                             <td>
                                                 <input type="text" maxlength="64" class="input" size="64" name="ss_obfs_param_x_0" style="width: 333px" value="<% nvram_get_x("","ss_obfs_param_x_0"); %>">
                                             </td>
-                                            <td width="22%" id="row_0_opnote" style="display:none;">..opts(opts,args)</td> <td width="22%" id="row_1_opnote" style="display:none;">..obfs_param</td> <td width="22%" id="row_3_opnote" style="display:none;">..Host(host1,host2)</td>
+                                            <td width="22%" id="row_0_opnote" style="display:none;">..opts(opts,args)</td>
+                                            <td width="22%" id="row_1_opnote" style="display:none;">..obfs_param</td>
+                                            <td width="22%" id="row_3_opnote" style="display:none;">..Host(host1,host2)</td>
+                                            <td width="22%" id="row_5s_opnote" style="display:none;">..obfs_password</td>
                                         </tr>
 
-                                        <tr id="row_23_sni" style="display:none;"> <th width="22%"><#menu5_16_VerifyHostname#></th>
+                                        <tr id="row_235_sni" style="display:none;"> <th width="22%"><#menu5_16_VerifyHostname#></th>
                                             <td>
                                                 <input type="text" maxlength="64" class="input" size="64" name="ss_server_sni_x_0" style="width: 333px" placeholder="<#menu5_16_ExampleHostname#>" value="<% nvram_get_x("","ss_server_sni_x_0"); %>">
                                             </td>

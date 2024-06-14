@@ -206,4 +206,7 @@ endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SSNAIVE),y)
 	$(ROMFSINST) -p +x $(THISDIR)/naive /usr/bin/naive
 endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SSHYSTERIA2),y)
+	$(ROMFSINST) -p +x $(THISDIR)/hysteria2 /usr/bin/hysteria2
+endif
 

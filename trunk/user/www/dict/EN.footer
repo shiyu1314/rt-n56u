@@ -856,6 +856,7 @@ menu5_16_Obfuscation=Obfuscation:
 menu5_16_PluginType=Plugin Type:
 menu5_16_MasqueradeType=Masquerade Type:
 menu5_16_ObfuscationParam=Obfuscation Param:
+menu5_16_ObfuscationKey=Obfuscation Key:
 menu5_16_PluginOptions=Plugin Options:
 menu5_16_MasqueradeDomain=Masquerade Domain:
 menu5_18=mentohust
