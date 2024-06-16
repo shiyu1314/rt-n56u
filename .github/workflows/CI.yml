@@ -48,7 +48,7 @@ jobs:
       - name: Prepare environment
         run: |
           sudo apt update
-          sudo apt install libtool-bin gperf python3-docutils autopoint gettext
+          sudo apt install libtool-bin gperf python3-docutils autopoint gettext help2man
       - name: Config and Custom
         run: |
           # git clone -b ${cac_branch} ${cac_git} ${cac_tmp}
@@ -153,7 +153,9 @@ jobs:
       - name: Prepare toolchain
         run: |
           cd toolchain-mipsel
-          sh dl_toolchain.sh
+          # sh dl_toolchain.sh
+          ./clean_toolchain
+          ./build_toolchain
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'yes' }}
@@ -181,7 +183,7 @@ jobs:
           path: ${{ env.images_dir }}/*.7z
       - name: Upload images to Releases
         if: ${{ github.event_name == 'release' && success() }}
-        uses: svenstaro/upload-release-action@2.7.0
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.images_dir }}/*.trx
