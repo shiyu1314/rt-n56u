@@ -24,6 +24,7 @@ maintainer/package-versions
 *.xz
 *.7zip
 !.tarball-version
+!mipsel-linux-uclibc.tar.xz
 
 # Temporaries
 .*.swp
@@ -42,7 +43,5 @@ testing/docker/*/xtools
 
 toolchain-3.4.x/
 dl/
-
-mipsel-linux-uclibc.tar.xz
 
 docs/ct-ng.1

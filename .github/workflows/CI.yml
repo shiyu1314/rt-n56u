@@ -153,9 +153,9 @@ jobs:
       - name: Prepare toolchain
         run: |
           cd toolchain-mipsel
-          # sh dl_toolchain.sh
-          ./clean_toolchain
-          ./build_toolchain
+          # ./clean_toolchain
+          # ./build_toolchain
+          sh dl_toolchain.sh
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'yes' }}
