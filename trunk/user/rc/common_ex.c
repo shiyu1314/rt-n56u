@@ -363,7 +363,11 @@ get_eeprom_params(void)
 			}
 		}
 		
+#if defined (USE_WID_5G) && (USE_WID_5G==7612)
+		nvram_wlan_set_int(1, "txbf_en", 1);
+#else
 		nvram_wlan_set_int(1, "txbf_en", (count_0xff == 33) ? 0 : 1);
+#endif
 	}
 
 }
