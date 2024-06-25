@@ -300,6 +300,15 @@ function done_validating(action){
                                             </td>
                                         </tr>
                                         <tr>
+                                            <th><#WIFISTBC#></th>
+                                            <td>
+                                                <select name="rt_stbc" class="input">
+                                                    <option value="0" <% nvram_match_x("","rt_stbc", "0","selected"); %>><#btn_Disable#> (*)</option>
+                                                    <option value="1" <% nvram_match_x("","rt_stbc", "1","selected"); %>>11n only</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th><a class="help_tooltip" href="javascript:void(0);" onmouseover="openTooltip(this, 3, 13);"><#WLANConfig11b_x_TxBurst_itemname#></a></th>
                                             <td>
                                                 <select name="rt_TxBurst" class="input" onChange="return change_common_rt(this, 'WLANConfig11b', 'rt_TxBurst')">
