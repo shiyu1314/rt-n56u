@@ -340,7 +340,7 @@ struct nvram_pair router_defaults[] = {
 	{ "rt_HT_BAWinSize", "64" },
 	{ "rt_ldpc", "0" },
 #endif
-	{ "rt_stbc", "0" },
+	{ "rt_stbc", "1" },
 	{ "rt_HT_AutoBA", "1" },
 	{ "rt_VgaClamp", "0" },
 	{ "rt_KickStaRssiLow", "0" },

@@ -1301,10 +1301,6 @@ gen_ralink_config(int is_soc_ap, int is_aband, int disable_autoscan)
 	//HT_STBC
 	i_stbc = nvram_wlan_get_int(is_aband, "stbc");
 	i_val = (i_stbc == 1 || i_stbc == 3) ? 1 : 0;
-#if defined (USE_WID_5G) && (USE_WID_5G==7612)
-	if (is_aband)
-		i_val = 0;
-#endif
 	fprintf(fp, "HT_STBC=%d;%d\n", i_val, i_val);
 
 	i_fphy[0] = calc_fixed_tx_mode(nvram_wlan_get_int(is_aband, "mcs_mode"), is_aband, i_phy_mode, &i_val_mbss[0]);
@@ -1331,10 +1327,6 @@ gen_ralink_config(int is_soc_ap, int is_aband, int disable_autoscan)
 	//HT_LDPC
 	i_ldpc = nvram_wlan_get_int(is_aband, "ldpc");
 	i_val = (i_ldpc == 1 || i_ldpc == 3) ? 1 : 0;
-#if defined (USE_WID_2G) && (USE_WID_2G==7603)
-	if (!is_aband)
-		i_val = 0;
-#endif
 	fprintf(fp, "HT_LDPC=%d;%d\n", i_val, i_val);
 
 #if BOARD_HAS_5G_11AC
@@ -1370,12 +1362,8 @@ gen_ralink_config(int is_soc_ap, int is_aband, int disable_autoscan)
 		fprintf(fp, "VHT_LDPC=%d\n", i_val);
 		
 		//VHT_STBC
-#if defined (USE_WID_5G) && (USE_WID_5G==7615 || USE_WID_5G == 7915)
 		i_val = (i_stbc == 2 || i_stbc == 3) ? 1 : 0;
 		fprintf(fp, "VHT_STBC=%d\n", i_val);
-#else
-		fprintf(fp, "VHT_STBC=%d\n", 0);
-#endif
 	}
 #endif
 
