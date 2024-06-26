@@ -221,6 +221,11 @@ struct nvram_pair router_defaults[] = {
 	{ "wl_preamble", "1" },
 	{ "wl_greenap", "0" },
 	{ "wl_ldpc", "2" },
+#if defined (USE_WID_5G) && (USE_WID_5G==7615 || USE_WID_5G==7915)
+	{ "wl_stbc", "2" },
+#else
+	{ "wl_stbc", "0" },
+#endif
 	{ "wl_HT_RDG", "0" },
 #if defined (USE_WID_5G) && (USE_WID_5G==7615 || USE_WID_5G==7915)
 	{ "wl_HT_AMSDU", "1" },
@@ -335,6 +340,7 @@ struct nvram_pair router_defaults[] = {
 	{ "rt_HT_BAWinSize", "64" },
 	{ "rt_ldpc", "0" },
 #endif
+	{ "rt_stbc", "1" },
 	{ "rt_HT_AutoBA", "1" },
 	{ "rt_VgaClamp", "0" },
 	{ "rt_KickStaRssiLow", "0" },

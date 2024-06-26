@@ -108,6 +108,7 @@ WIFIStreamTX=HT Spatial Streams TX:
 WIFIStreamRX=HT Spatial Streams RX:
 WIFIGreenAP=Enable Energy Saving Green AP?
 WIFILDPC=Enable LDPC Codes Support?
+WIFISTBC=Enable STBC Codes Support?
 WIFIRDG=Enable Reverse Direction Grant (RDG)?
 WIFIAutoBA=Enable Auto Block Acknowledgment (AutoBA)?
 WIFIVgaClamp=Clamp RX Gain to Reduce Impact Interference:

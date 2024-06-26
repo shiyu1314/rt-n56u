@@ -41,9 +41,10 @@ function initial(){
 		wid = support_5g_wid();
 		if (wid==7612){
 			showhide_div("row_vga_clamp", 1);
-			showhide_div("row_ldpc", 1);
 		} else if (wid==7615 || wid==7915){
-			showhide_div("row_ldpc", 1);
+			showhide_div("row_stbc_1", 1);
+			showhide_div("row_stbc_2", 1);
+			showhide_div("row_stbc_3", 1);
 		}
 	}
 
@@ -268,7 +269,7 @@ function done_validating(action){
                                                 &nbsp;<span style="color:#888;">[20..1000]</span>
                                             </td>
                                         </tr>
-                                        <tr id="row_ldpc" style="display:none">
+                                        <tr>
                                             <th><#WIFILDPC#></th>
                                             <td>
                                                 <select name="wl_ldpc" class="input">
@@ -276,6 +277,17 @@ function done_validating(action){
                                                     <option value="1" <% nvram_match_x("","wl_ldpc", "1","selected"); %>>11n only</option>
                                                     <option value="2" <% nvram_match_x("","wl_ldpc", "2","selected"); %>>11ac only (*)</option>
                                                     <option value="3" <% nvram_match_x("","wl_ldpc", "3","selected"); %>>11n & 11ac</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th><#WIFISTBC#></th>
+                                            <td>
+                                                <select name="wl_stbc" class="input">
+                                                    <option value="0" <% nvram_match_x("","wl_stbc", "0","selected"); %>><#btn_Disable#></option>
+                                                    <option id="row_stbc_1" style="display:none" value="1" <% nvram_match_x("","wl_stbc", "1","selected"); %>>11n only</option>
+                                                    <option id="row_stbc_2" style="display:none" value="2" <% nvram_match_x("","wl_stbc", "2","selected"); %>>11ac only</option>
+                                                    <option id="row_stbc_3" style="display:none" value="3" <% nvram_match_x("","wl_stbc", "3","selected"); %>>11n & 11ac</option>
                                                 </select>
                                             </td>
                                         </tr>
