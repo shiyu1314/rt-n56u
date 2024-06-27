@@ -49,9 +49,9 @@ function initial(){
 		wid = support_2g_wid();
 		if (wid==7602||wid==7612){
 			showhide_div("row_vga_clamp", 1);
-			showhide_div("row_ldpc", 1);
+			showhide_div("row_ldpc_1", 1);
 		} else if (wid==7615 || wid==7915){
-			showhide_div("row_ldpc", 1);
+			showhide_div("row_ldpc_1", 1);
 		}
 	}
 
@@ -290,12 +290,21 @@ function done_validating(action){
                                                 </select>
                                             </td>
                                         </tr>
-                                        <tr id="row_ldpc" style="display:none">
+                                        <tr>
                                             <th><#WIFILDPC#></th>
                                             <td>
                                                 <select name="rt_ldpc" class="input">
-                                                    <option value="0" <% nvram_match_x("","rt_ldpc", "0","selected"); %>><#btn_Disable#> (*)</option>
-                                                    <option value="1" <% nvram_match_x("","rt_ldpc", "1","selected"); %>>11n only</option>
+                                                    <option value="0" <% nvram_match_x("","rt_ldpc", "0","selected"); %>><#btn_Disable#></option>
+                                                    <option id="row_ldpc_1" style="display:none" value="1" <% nvram_match_x("","rt_ldpc", "1","selected"); %>>11n only</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th><#WIFISTBC#></th>
+                                            <td>
+                                                <select name="rt_stbc" class="input">
+                                                    <option value="0" <% nvram_match_x("","rt_stbc", "0","selected"); %>><#btn_Disable#></option>
+                                                    <option value="1" <% nvram_match_x("","rt_stbc", "1","selected"); %>>11n only (*)</option>
                                                 </select>
                                             </td>
                                         </tr>

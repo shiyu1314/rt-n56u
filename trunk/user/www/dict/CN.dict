@@ -123,6 +123,7 @@ WIFIStreamTX=HT 空间流 TX:
 WIFIStreamRX=HT 空间流 RX:
 WIFIGreenAP=启用绿色节能 AP
 WIFILDPC=启用 LDPC 编码支持
+WIFISTBC=启用 STBC 编码支持
 WIFIRDG=启用反向拓展信道 (RDG)
 WIFIAutoBA=启用自动块确认 (AutoBA)
 WIFIVgaClamp=降低 RX 增益对 USB3.0 的干扰:
