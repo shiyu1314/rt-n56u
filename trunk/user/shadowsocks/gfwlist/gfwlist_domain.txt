@@ -51,6 +51,7 @@ deepmind.com
 devsitetest.how
 dialogflow.com
 digitalassetlinks.org
+docs.new
 episodic.com
 feedburner.com
 fflick.com
@@ -154,6 +155,8 @@ saynow.com
 schemer.com
 screenwisetrends.com
 screenwisetrendspanel.com
+sheets.new
+slides.new
 snapseed.com
 stadia.dev
 stcroixmosquito.com
@@ -187,6 +190,7 @@ webmproject.org
 webpkgcache.com
 webrtc.org
 whatbrowser.org
+whats.new
 womenwill.com
 womenwill.com.br
 womenwill.id
@@ -690,7 +694,7 @@ xvideos.com
 sis001.com
 sis001.us
 t66y.com
-:^chatgpt-async-webps-prod-eastus-\d+\.webpubsub\.azure\.com$:
+:^chatgpt-async-webps-prod-\S+-\d+\.webpubsub\.azure\.com$:
 :.+\.awsdns-[0-9][0-9]\.(co\.uk|com|net|org)$:
 :.+\.awsdns-cn-[0-9][0-9]\.(biz|com|net|top)$:
 :.+\.awsdns-cn-[0-9][a-e0-9]\.cn$:

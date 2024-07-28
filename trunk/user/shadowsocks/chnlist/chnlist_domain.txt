@@ -3,7 +3,6 @@
 95095.com
 aliapp.org
 alifanyi.com
-alihealth.hk
 aliimg.com
 alikmd.com
 alimama.com
@@ -64,7 +63,6 @@ yunos.com
 yushanfang.com
 zuodao.com
 aliexpress.com
-aliexpress.ru
 alipayplus.com
 alicloudccp.com
 alipan.com
@@ -90,13 +88,11 @@ taopiaopiao.com
 tbcache.com
 tburl.in
 tmall.com
-tmall.ru
 tmalltv.com
 tmjl.ai
 alitrip.com
 feizhu.com
 fliggy.com
-fliggy.hk
 iuynfg.com
 xiami.com
 xiami.fm
@@ -129,6 +125,7 @@ elenet.me
 teambition.com
 teambition.net
 teambitionapis.com
+uc123.com
 ucweb.com
 mobmore.com
 umeng.com
@@ -150,6 +147,7 @@ gaode.com
 aipage.com
 apollo.auto
 baidu.com
+baiduapp.com
 baidubce.com
 baiducontent.com
 baidupcs.com
@@ -181,6 +179,14 @@ tieba.com
 tiebaimg.com
 xianfae.com
 xiaodutv.com
+dxm-cdn.com
+dxm-int.com
+dxmlcf.com
+dxmlcfintech.com
+dxmpay.com
+dxmstatic.com
+dxmyqh.com
+paydxm.com
 zuoyebang.cc
 zuoyebang.com
 zybang.com
@@ -536,8 +542,11 @@ qqmail.com
 qzone.com
 tenpay.com
 tfogc.com
+tlivepush.com
+txlivecdn.com
 wechat.com
 weiyun.com
+wxlivecdn.com
 alloyteam.com
 imweb.io
 ivweb.io
@@ -797,6 +806,7 @@ world.taobao.com
 :.*alicdn.*:
 :.*aliyun.*:
 :.*kunlun.*:
+:duxiaoman.*:
 :bytedance.*:
 :bytedns.*:
 :.*byteimg\.com$:
