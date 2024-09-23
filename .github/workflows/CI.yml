@@ -65,5 +65,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.images_dir }}
+          tag_name: R3G
           files: ${{ env.images_dir }}/*.trx
