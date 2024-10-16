@@ -138,7 +138,7 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_WIREGUARD"                 "n" "设置VPN客户端WireGuard(WireGuard协议)"
           SP "CONFIG_FIRMWARE_INCLUDE_SFE"                       "y" "设置SFE(shortcut-fe)软件加速"
           SP "CONFIG_FIRMWARE_INCLUDE_SMARTDNS"                  "n" "设置SmartDNS本地DNS服务器"
-          SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "y" "设置SSP代理基础程序"
+          SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "n" "设置SSP代理基础程序"
           SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "n" "设置SSP代理Trojan可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSVMESS"                   "n" "设置SSP代理VMess可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSNAIVE"                   "n" "设置SSP代理Naive可执行程序"
@@ -182,11 +182,9 @@ jobs:
           name: ${{ env.image_name }}
           path: ${{ env.images_dir }}/*.7z
       - name: Upload images to Releases
-        if: ${{ github.event_name == 'release' && success() }}
-        uses: svenstaro/upload-release-action@2.9.0
+        uses: softprops/action-gh-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.images_dir }}/*.trx
-          tag: ${{ github.ref }}
-          overwrite: true
-          file_glob: true
+          tag_name: R3G
+          files: ${{ env.images_dir }}/*.trx
