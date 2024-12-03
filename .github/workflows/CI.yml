@@ -41,6 +41,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install libtool-bin gperf python3-docutils autopoint gettext help2man
+          TAG="$(date +'%Y%m%d')-$(openssl rand -hex 3)"
+          echo "tag=$TAG" >> $GITHUB_ENV
       - name: Config and Custom
         run: |
           # git clone -b ${cac_branch} ${cac_git} ${cac_tmp}
@@ -167,16 +169,17 @@ jobs:
           image_name="${{ env.VER }}${{ env.RMD }}_${build_variant}"
           cd ${images_dir}; md5sum *.trx |tee md5sum.txt; 7z a -mx=9 ${image_name}.7z ./*
           echo "image_name=${image_name}" >> $GITHUB_ENV
-      - name: Upload images to Artifact
-        if: ${{ github.event_name != 'release' && success() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.image_name }}
-          path: ${{ env.images_dir }}/*.7z
       - name: Upload images to Releases
         uses: softprops/action-gh-release@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: R3G
+          tag_name: padavan-${{env.tag}}
           files: ${{ env.images_dir }}/*.trx
+      - name: 清理Releases
+        uses: dev-drprasad/delete-older-releases@v0.3.4
+        with:
+          keep_latest: 2
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
