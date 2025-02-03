@@ -322,12 +322,10 @@ return 0
 addr_isip_noip()
 {
 addr_isip=$(echo "$1" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}")
-addr_noip=$(echo "$1" | grep -E -v "^([0-9]{1,3}\.){3}[0-9]{1,3}")
 if [ "$addr_isip" == "$1" ]; then
-  [ ! -e "$CONF_DIR/Serveraddr-isip" ] || echo -e ",\c" >> $CONF_DIR/Serveraddr-isip
-  echo -e "$addr_isip\c" >> $CONF_DIR/Serveraddr-isip
-elif [ "$addr_noip" == "$1" ]; then
-  echo "$addr_noip" >> $CONF_DIR/Serveraddr-noip
+  echo "$addr_isip" >> $CONF_DIR/Serveraddr-isip
+else
+  echo "$1" >> $CONF_DIR/Serveraddr-noip
 fi
 }
 
@@ -912,11 +910,10 @@ chmod +x $socksstart && logger -st "SSP[$$]$bin_type" "开启本地代理" && $s
 sip_addr()
 {
 if [ -e "$CONF_DIR/Serveraddr-isip" ]; then
-  serverisip=$(tail -n 1 $CONF_DIR/Serveraddr-isip)
+  echo " -s $CONF_DIR/Serveraddr-isip"
 else
-  serverisip=0
+  echo ""
 fi
-echo " -s $serverisip"
 }
 
 sip_port()
