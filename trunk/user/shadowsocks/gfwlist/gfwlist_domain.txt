@@ -47,7 +47,6 @@ crossmediapanel.com
 cs4hs.com
 dartsearch.net
 dataliberation.org
-deepmind.com
 devsitetest.how
 dialogflow.com
 digitalassetlinks.org
@@ -203,7 +202,6 @@ xn--flw351e.com
 xn--ggle-55da.com
 xn--gogl-0nd52e.com
 xn--gogl-1nd42e.com
-xn--ngstr-lra8j.com
 xplr.co
 android.com
 androidify.com
@@ -223,6 +221,8 @@ flutterapp.com
 pub.dev
 go.dev
 godoc.org
+deepmind.com
+xn--ngstr-lra8j.com
 charlestonroadregistry.com
 crr.com
 get.app
@@ -514,8 +514,13 @@ nflxsearch.net
 nflxso.net
 nflxvideo.net
 chatgpt.com
+chat.com
 oaistatic.com
 oaiusercontent.com
+sora.com
+chatgpt.livekit.cloud
+host.livekit.cloud
+turn.livekit.cloud
 bookstagram.com
 carstagram.com
 chickstagram.com
@@ -552,6 +557,7 @@ intgram.com
 kingstagram.com
 lnstagram-help.com
 jtvnw.net
+live-video.net
 ttvnw.net
 tumblr.com
 pin.it
@@ -610,6 +616,8 @@ wholeplanetfoundation.org
 byteoversea.com
 musical.ly
 tik-tokapi.com
+ttlivecdn.com
+ttoverseaus.net
 ttwstatic.com
 wa.me
 scdn.co
@@ -629,11 +637,11 @@ blob.core.windows.net
 npm.community
 npmjs.com
 npmjs.org
-poe.com
-poecdn.net
 qr.ae
 quora.com
 quoracdn.net
+poe.com
+poecdn.net
 bbc-reporting-api.app
 bbc.com
 bbc.in
@@ -695,9 +703,8 @@ sis001.com
 sis001.us
 t66y.com
 :^chatgpt-async-webps-prod-\S+-\d+\.webpubsub\.azure\.com$:
+:.+\.amzndns\.(co\.uk|com|net|org)$:
 :.+\.awsdns-[0-9][0-9]\.(co\.uk|com|net|org)$:
-:.+\.awsdns-cn-[0-9][0-9]\.(biz|com|net|top)$:
-:.+\.awsdns-cn-[0-9][a-e0-9]\.cn$:
 :^[0-9]+vod-adaptive\.akamaized\.net$:
 :.*google.*:
 :blogspot\..+:
