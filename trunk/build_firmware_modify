@@ -350,6 +350,9 @@ fi
 if [ "$CONFIG_FIRMWARE_ENABLE_EXT4" != "y" ] ; then
 	func_disable_kernel_param "CONFIG_EXT4_FS"
 fi
+if [ "$CONFIG_FIRMWARE_ENABLE_EXT3" != "y" ] && [ "$CONFIG_FIRMWARE_ENABLE_EXT2" != "y" ] ; then
+	func_enable_kernel_param "CONFIG_EXT4_USE_FOR_EXT23"
+fi
 ############################# XFS #####################################
 if [ "$CONFIG_FIRMWARE_ENABLE_XFS" != "y" ] ; then
 	func_disable_kernel_param "CONFIG_XFS_FS"
