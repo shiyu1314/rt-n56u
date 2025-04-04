@@ -2008,25 +2008,25 @@ static int shadowsocks_action_hook(int eid, webs_t wp, int argc, char **argv)
 	char *ss_action = websGetVar(wp, "connect_action", "");
 
 	if (!strcmp(ss_action, "subRestart")) {
-		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
-		doSystem("echo %s > %s", "1", "/tmp/SSP/startrules");
+		nvram_set_int_temp("turn_json_file", 0);
+		nvram_set_int_temp("start_rules", 1);
 		needed_seconds = 9;
 	} else if (!strcmp(ss_action, "Reconnect")) {
-		notify_rc(RCN_RESTART_SHADOWSOCKS);
-		doSystem("echo %s > %s", "1", "/tmp/SSP/areconnect");
-		doSystem("echo %s > %s", "0", "/tmp/SSP/startrules");
+		nvram_set_int_temp("turn_json_file", 1);
+		nvram_set_int_temp("start_rules", 0);
 		needed_seconds = 9;
+		notify_rc(RCN_RESTART_SHADOWSOCKS);
 	} else if (!strcmp(ss_action, "Update_chnroute")) {
+		nvram_set_int_temp("turn_json_file", 0);
+		nvram_set_int_temp("start_rules", 1);
+		needed_seconds = 1;
 		notify_rc(RCN_RESTART_CHNROUTE_UPD);
-		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
-		doSystem("echo %s > %s", "1", "/tmp/SSP/startrules");
-		needed_seconds = 1;
 	} else if (!strcmp(ss_action, "Update_chnlist")) {
+		needed_seconds = 1;
 		notify_rc(RCN_RESTART_CHNLIST_UPD);
-		needed_seconds = 1;
 	} else if (!strcmp(ss_action, "Update_gfwlist")) {
-		notify_rc(RCN_RESTART_GFWLIST_UPD);
 		needed_seconds = 1;
+		notify_rc(RCN_RESTART_GFWLIST_UPD);
 	}
 	websWrite(wp, "<script>restart_needed_time(%d);</script>\n", needed_seconds);
 	return 0;

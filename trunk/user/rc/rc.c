@@ -624,6 +624,16 @@ nvram_convert_misc_values(void)
 	nvram_set_int_temp("link_internet", 3);
 	nvram_set_int_temp("link_wan", 0);
 
+#if defined (APP_SHADOWSOCKS)
+	nvram_set_int_temp("turn_json_file", 0);
+	nvram_set_int_temp("start_rules", 0);
+	nvram_set_int_temp("wait_times", 0);
+	nvram_set_int_temp("link_times", 0);
+	nvram_set_int_temp("link_error", 0);
+	nvram_set_temp("server_infor", "snum#type#addr#port");
+	nvram_set_temp("watchcat_state", "stopped");
+#endif
+
 	nvram_set_int_temp("led_front_t", 1);
 	nvram_set_int_temp("led_ether_t", 1);
 

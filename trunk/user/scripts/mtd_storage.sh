@@ -569,7 +569,10 @@ EOF
 	fi
 
 	# create SSP Custom Conf
-	if [ ! -f "$sspcustomconf" ] ; then
+	if [ ! -s "$sspcustomconf" ] ; then
+		rm -rf $sspcustomconf
+	fi
+	if [ ! -e "$sspcustomconf" ] ; then
 		cat > "$sspcustomconf" <<EOF
 ### Binaries name
 sspbinname|trojan
@@ -598,7 +601,7 @@ serverport|443
 }
 
 EOF
-		chmod 755 "$sspcustomconf"
+		chmod 666 "$sspcustomconf"
 	fi
 
 	# create user dnsmasq.conf

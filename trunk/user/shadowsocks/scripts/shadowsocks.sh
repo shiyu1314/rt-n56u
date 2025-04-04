@@ -19,28 +19,20 @@ ss_local_bin="$SYSB_DIR/ss-orig-local"
 ssr_local_bin="$SYSB_DIR/ssr-local"
 local_bin="ss-local"
 local_link="/var/ss-local"
-#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
-#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
-#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/naive or $SYSB_DIR/naive
-#$SYSB_DIR/ss-redir -> /var/ss-redir -> $EXTB_DIR/hysteria2 or $SYSB_DIR/hysteria2
+#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
+#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
+#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/naive or $SYSB_DIR/naive
+#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/hysteria2 or $SYSB_DIR/hysteria2
 v2rp_bin="v2ray-plugin"
 v2rp_link="/var/v2ray-plugin"
 #$SYSB_DIR/v2ray-plugin -> /var/v2ray-plugin -> $EXTB_DIR/v2ray-plugin or $SYSB_DIR/ss-v2ray-plugin
 
-ubin_log_file="/tmp/ss-redir.log"
-statusfile="$CONF_DIR/statusfile"
-scoresfile="$CONF_DIR/scoresfile"
-areconnect="$CONF_DIR/areconnect"
-netdpcount="$CONF_DIR/netdpcount"
-errorcount="$CONF_DIR/errorcount"
-scorecount="$CONF_DIR/scorecount"
-issjfinfor="$CONF_DIR/issjfinfor"
 dnscqstart="$CONF_DIR/dnscqstart"
 socksstart="$CONF_DIR/socksstart"
 rulesstart="$CONF_DIR/rulesstart"
-quickstart="$CONF_DIR/quickstart"
-startrules="$CONF_DIR/startrules"
-internetcd="$CONF_DIR/internetcd"
+redirstart="$CONF_DIR/redirstart"
+scoresfile="$CONF_DIR/scoresfile"
+ubin_log_file="/tmp/ss-redir.log"
 
 sspbinname=$(cat /etc/storage/ssp_custom.conf | grep '^sspbinname' | awk -F\| '{print $2}')
 autorec=$(nvram get ss_watchcat_autorec)
@@ -48,7 +40,6 @@ ss_enable=$(nvram get ss_enable)
 ss_type=$(nvram get ss_type)
 ssp_type=${ss_type:0} # 0=ss 1=ssr 2=trojan 3=vmess 8=custom 9=auto
 ss_mode=$(nvram get ss_mode) # 0=global 1=chnroute 21=gfwlist(diversion rate: Keen) 22=gfwlist(diversion rate: True)
-diversion_rate=$(nvram get diversion_rate)
 ss_socks=$(nvram get ss_socks)
 ss_local_port=$(nvram get ss_local_port)
 ss_redir_port=$(expr $ss_local_port + 1)
@@ -78,7 +69,7 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ "$ssp_type" == "8" ] && bin_type="Custom"
 [ "$ssp_type" == "9" ] && bin_type="Auto"
 [ "$ss_socks" == "1" ] && ssp_ubin="$local_bin" || ssp_ubin="$redir_bin"
-[ ! -d "$CONF_DIR/gfwlist" ] && mkdir -p "$CONF_DIR/gfwlist" && echo "3" > $errorcount && echo "0" > $areconnect
+[ ! -d "$CONF_DIR/gfwlist" ] && mkdir -p "$CONF_DIR/gfwlist" && nvram set wait_times=3 && nvram set turn_json_file=0
 [ -e "$EXTB_DIR/$sspbinname" ] && chmod +x $EXTB_DIR/$sspbinname && ssp_custom="$EXTB_DIR/$sspbinname" || ssp_custom="$SYSB_DIR/$sspbinname"
 [ -e "$EXTB_DIR/trojan" ] && chmod +x $EXTB_DIR/trojan && ssp_trojan="$EXTB_DIR/trojan" || ssp_trojan="$SYSB_DIR/trojan"
 [ -e "$EXTB_DIR/naive" ] && chmod +x $EXTB_DIR/naive && ssp_naive="$EXTB_DIR/naive" || ssp_naive="$SYSB_DIR/naive"
@@ -104,13 +95,13 @@ return 0
 
 stop_watchcat()
 {
-echo "daten_stopwatchcat" > $statusfile
+nvram set watchcat_state=stop_watchcat
 sed -i '/ss-watchcat.sh/d' $CRON_CONF && restart_crond
 stopp ss-watchcat.sh
-rm -rf $statusfile
-rm -rf $netdpcount
-rm -rf $errorcount
-rm -rf $issjfinfor
+nvram set link_error=0
+nvram set wait_times=0
+nvram set server_infor=snum#type#addr#port
+nvram set watchcat_state=stopped
 return 0
 }
 
@@ -229,6 +220,7 @@ restart_dhcpd
 del_json_file()
 {
 logger -st "SSP[$$]$bin_type" "清除配置文件"
+nvram set turn_json_file=0
 rm -rf $CONF_DIR/*.md5
 rm -rf $CONF_DIR/*.toml
 rm -rf $CONF_DIR/*.json
@@ -242,7 +234,7 @@ return 0
 del_score_file()
 {
 rm -rf $scoresfile
-rm -rf $scorecount
+nvram set link_times=0
 return 0
 }
 
@@ -251,7 +243,7 @@ stop_redir()
 (stopp $redir_bin && logger -st "SSP[$$]$bin_type" "关闭代理进程")&
 (stopp $local_bin && logger -st "SSP[$$]$bin_type" "关闭代理进程")&
 (stopp $v2rp_bin && logger -st "SSP[$$]$bin_type" "关闭插件进程")&
-(rm -rf $quickstart)&
+(rm -rf $redirstart)&
 wait
 return 0
 }
@@ -271,21 +263,17 @@ if [ "$ss_enable" == "0" ]; then
   gen_dns_conf 0
   del_json_file
   del_score_file
-  rm -rf $areconnect
-  rm -rf $startrules
-  rm -rf $internetcd
-elif [ "$(tail -n 1 $internetcd 2>/dev/null)" == "1" ]; then
-  $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || stop_watchcat
+  nvram set start_rules=0
+elif [ "$(nvram get link_internet)" == "0" ]; then
+  $(nvram get watchcat_state | grep -q 'watchcat_stop_ssp') || stop_watchcat
   stop_socks
   stop_rules
   gen_dns_conf 0
   del_json_file
   del_score_file
-  rm -rf $areconnect
-  rm -rf $startrules
-  rm -rf $internetcd
+  nvram set start_rules=0
 else
-  $(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_stop_ssp') || stop_watchcat
+  $(nvram get watchcat_state | grep -q 'watchcat_stop_ssp') || stop_watchcat
 fi
 stop_redir
 notify_detect_internet
@@ -310,8 +298,8 @@ turn_json_file()
   echo "$i#$node_type#$server_addr#$server_port#$server_key#$server_sni#$ss_method#$ss_protocol#$ss_proto_param#$ss_obfs#$ss_obfs_param" >> $CONF_DIR/Nodes-list
 done && md5sum -c -s $CONF_DIR/Nodes-list.md5 || return 1
 [ "$(cat $CONF_DIR/$bin_type-jsonlist 2>/dev/null | wc -l)" != "1" ] || return 0
-[ "$(tail -n 1 $areconnect 2>/dev/null)" == "1" ] || return 0
-logger -st "SSP[$$]$bin_type" "更换配置文件" && echo "0" > $scorecount
+[ "$(nvram get turn_json_file)" == "1" ] || return 0
+logger -st "SSP[$$]$bin_type" "更换配置文件" && nvram set link_times=0
 turn_temp=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist)
 turn_json=${turn_temp:0}
 sed -i '/'$turn_json'/d' $CONF_DIR/$bin_type-jsonlist
@@ -336,9 +324,9 @@ confoptarg=$(cat /etc/storage/ssp_custom.conf | grep '^confoptarg' | awk -F\| '{
 serveraddr=$(cat /etc/storage/ssp_custom.conf | grep '^serveraddr' | awk -F\| '{print $2}')
 serverport=$(cat /etc/storage/ssp_custom.conf | grep '^serverport' | awk -F\| '{print $2}')
 turn_json_file || del_json_file
-[ "$autorec" == "1" ] && echo "1" > $areconnect || echo "0" > $areconnect
+[ "$autorec" == "1" ] && nvram set turn_json_file=1 || nvram set turn_json_file=0
 if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
-  echo "1" > $startrules
+  nvram set start_rules=1
   logger -st "SSP[$$]$bin_type" "创建配置文件"
   for i in $(seq 1 $nodesnum); do
     j=$(expr $i - 1)
@@ -855,7 +843,7 @@ EOF
 fi
 [ "$bin_type" == "Custom" ] || [ "$bin_type" == "Auto" ] || \
 $(cat $CONF_DIR/$bin_type-jsonlist 2>/dev/null | grep -q "$bin_type-redir") || \
-$(stop_ssp "请到[节点设置]添加 $bin_type 服务器" && return 1) || exit 1
+$(stop_ssp "请到[节点设置]添加 $bin_type 节点" && return 1) || exit 1
 ssp_server_addr=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist | awk -F# '{print $1}')
 ssp_server_port=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist | awk -F# '{print $2}')
 redir_json_file=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist | awk -F# '{print $3}')
@@ -1020,7 +1008,7 @@ fi
 
 start_rules()
 {
-[ "$(tail -n +1 "$startrules" 2>/dev/null)" -eq "1" ] || return 0
+[ "$(nvram get start_rules)" == "1" ] || return 0
 cat > "$rulesstart" << EOF
 #!/bin/sh
 
@@ -1038,23 +1026,23 @@ $(agent_pact)
 EOF
 chmod +x $rulesstart && logger -st "SSP[$$]$bin_type" "开启透明代理" && $rulesstart
 SREC="$?"
-$([ "$SREC" == "0" ] && echo "0" > $startrules && gen_dns_conf && del_score_file && return 0) || \
+$([ "$SREC" == "0" ] && nvram set start_rules=0 && gen_dns_conf && del_score_file && return 0) || \
 $([ "$SREC" == "1" ] && restart_firewall && gen_dns_conf && del_score_file && return 0) || \
-$(echo "1" > $startrules && return $SREC)
+$(nvram set start_rules=1 && return $SREC)
 }
 
 start_redir()
 {
-cat > "$quickstart" << EOF
+cat > "$redirstart" << EOF
 #!/bin/sh
 
 conffile="$(conffile)"
 export SSL_CERT_FILE='/etc/storage/cacerts/cacert.pem'
 nohup $ssp_ubin$(opt_arg)$(udp_ext) &>$ubin_log_file &
 EOF
-chmod +x $quickstart && logger -st "SSP[$$]$bin_type" "启动代理进程" && $quickstart
+chmod +x $redirstart && logger -st "SSP[$$]$bin_type" "启动代理进程" && $redirstart
 $(sleep 1 && pidof $ssp_ubin &>/dev/null) || $(sleep 1 && pidof $ssp_ubin &>/dev/null)
-[ "$?" == "1" ] && echo "1" > $areconnect && return 1 || return 0
+[ "$?" == "1" ] && nvram set turn_json_file=1 && return 1 || return 0
 }
 
 ncron()
@@ -1081,16 +1069,16 @@ return 0
 start_ssp()
 {
 ulimit -n 65536
-[ "$(tail -n +1 "$errorcount" 2>/dev/null)" -ge "1" ] && scron 1 && exit 0
-$(cat "$statusfile" 2>/dev/null | grep -q 'watchcat_start_ssp') || stop_watchcat
+[ "$(nvram get wait_times)" -ge "1" ] && scron 1 && exit 0
+$(nvram get watchcat_state | grep -q 'watchcat_start_ssp') || stop_watchcat
 gen_json_file
 start_socks || stop_socks
-start_redir || $(echo "1" > $errorcount && logger -st "SSP[$$]WARNING" "启动代理进程出错")
-start_rules || $(echo "1" > $errorcount && logger -st "SSP[$$]WARNING" "开启透明代理出错")
-echo "$ssp_server_snum#$ssp_server_type#$ssp_server_addr#$ssp_server_port" > $issjfinfor
-[ "$(tail -n +1 "$errorcount" 2>/dev/null)" -ge "1" ] && scron 1 && exit 0
+start_redir || $(nvram set wait_times=1 && logger -st "SSP[$$]WARNING" "启动代理进程出错")
+start_rules || $(nvram set wait_times=1 && logger -st "SSP[$$]WARNING" "开启透明代理出错")
+nvram set server_infor=$ssp_server_snum#$ssp_server_type#$ssp_server_addr#$ssp_server_port
+[ "$(nvram get wait_times)" -ge "1" ] && scron 1 && exit 0
 sleep 1 && pidof ss-watchcat.sh &>/dev/null && STA_LOG="重启完成" || $SYSB_DIR/ss-watchcat.sh
-logger -st "SSP[$(pidof $ssp_ubin)]$ssp_server_type" "节点$ssp_server_snum[$ssp_server_addr:$ssp_server_port]${STA_LOG:=成功启动}" && scron 1
+logger -st "SSP[$$]$ssp_server_type" "节点$ssp_server_snum[$ssp_server_addr:$ssp_server_port]${STA_LOG:=成功启动}" && scron 1
 notify_detect_internet
 return 0
 }

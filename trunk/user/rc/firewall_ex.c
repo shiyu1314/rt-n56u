@@ -2123,13 +2123,13 @@ start_firewall_ex(void)
 #if defined (APP_SHADOWSOCKS)
 	const char *shadowsocks_iptables_script = "/tmp/SSP/rulesstart";
 
+	nvram_set_int_temp("turn_json_file", 0);
+
 	if (check_if_file_exist(shadowsocks_iptables_script)) {
-		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
-		doSystem("echo %s > %s", "0", "/tmp/SSP/startrules");
+		nvram_set_int_temp("start_rules", 0);
 	} else if (nvram_match("ss_enable", "1")) {
-		doSystem("echo %s > %s", "3", "/tmp/SSP/errorcount");
-		doSystem("echo %s > %s", "0", "/tmp/SSP/areconnect");
-		doSystem("echo %s > %s", "1", "/tmp/SSP/startrules");
+		nvram_set_int_temp("start_rules", 1);
+		nvram_set_int_temp("wait_times", 3);
 	}
 #endif
 
@@ -2215,19 +2215,19 @@ start_firewall_ex(void)
 	restart_iappd();
 #endif
 
-#if defined (APP_SHADOWSOCKS)
-	if (check_if_file_exist(shadowsocks_iptables_script)) {
-		doSystem("sh %s", shadowsocks_iptables_script);
-	} else if (nvram_match("ss_enable", "1")) {
-		doSystem("echo %s > %s", "1", "/tmp/SSP/errorcount");
-	}
-#endif
-
 	/* try unload unused iptables modules */
 	module_smart_unload("xt_webstr", 0);
 	module_smart_unload("xt_HL", 0);
 	module_smart_unload("iptable_raw", 0);
 	module_smart_unload("iptable_mangle", 0);
 	module_smart_unload("ip6table_mangle", 0);
+
+#if defined (APP_SHADOWSOCKS)
+	if (check_if_file_exist(shadowsocks_iptables_script)) {
+		doSystem("sh %s", shadowsocks_iptables_script);
+	} else if (nvram_match("ss_enable", "1")) {
+		nvram_set_int_temp("wait_times", 1);
+	}
+#endif
 }
 

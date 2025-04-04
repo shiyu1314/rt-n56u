@@ -155,6 +155,7 @@ configure_ss:
 
 clean: clean_ipt clean_ssr clean_ss
 	rm -f ssr_config_done ss_config_done ipt_config_done
+	rm -rf $(CACERT_DIR)
 	rm -rf $(CHNROUTE_DIR)
 
 clean_ipt:
