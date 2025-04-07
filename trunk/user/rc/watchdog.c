@@ -983,9 +983,16 @@ static void iappd_process_check(void)
 {
 	int iappd_is_run = pids("ralinkiappd");
 
-	if (!iappd_is_run)
-		iappd_missing++;
-	else
+	if (!iappd_is_run) {
+		if (get_enabled_radio_rt()
+#if BOARD_HAS_5G_RADIO
+			|| get_enabled_radio_wl()
+#endif
+			)
+			iappd_missing++;
+		else
+			iappd_missing = 0;
+	} else
 		iappd_missing = 0;
 	
 	if (iappd_missing > 1) {

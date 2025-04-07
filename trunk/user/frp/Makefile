@@ -19,7 +19,7 @@ extra_test:
 	fi )
 
 clean:
-	rm -rf $(FRP_NAME).tar.gz $(FRP_NAME)
+	rm -rf $(FRP_NAME)
 
 romfs:
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_FRPC),y)

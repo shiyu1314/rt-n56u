@@ -18,7 +18,10 @@ ipt_m="/tmp/ss-rules_iptables_mangle"
 routemark="0x64"
 ruletable="100"
 
-connlimitsrc="-m connlimit --connlimit-upto 256 --connlimit-mask 32 --connlimit-saddr"
+mcl="-m connlimit --connlimit"
+clm="--connlimit-mask 32 --connlimit"
+mrl="-m limit --limit"
+rlb="--limit-burst"
 
 flush_rules()
 {
@@ -49,6 +52,7 @@ ipset -! restore <<-EOF || return 1
   $(cat ${gfw_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add gfwlist /")
   $(cat ${chn_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add chnlist /")
   $(cat ${chnexp_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add chnlist /")
+  $(cat ${servers_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add servers /")
 EOF
 }
 
@@ -63,20 +67,18 @@ echo ":SSP_PREROUTING - [0:0]" >> $ipt_n
 echo ":SSP_RULES - [0:0]" >> $ipt_n
 echo "-A PREROUTING -j SSP_PREROUTING" >> $ipt_n
 echo "-A OUTPUT -j SSP_OUTPUT" >> $ipt_n
-echo "-A SSP_AGENT -p tcp $connlimitsrc -j REDIRECT --to-ports $local_port" >> $ipt_n
+echo "-A SSP_AGENT -p tcp $mcl-upto 256 $clm-saddr -j REDIRECT --to-ports $local_port" >> $ipt_n
 echo "-A SSP_AGENT -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOG -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR2 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOG -p tcp $mcl-upto 256 $clm-saddr $mcl-upto $DR4 $clm-daddr -j SSP_AGENT" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_AUTOG -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR1 --connlimit-mask 32 --connlimit-daddr -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR2 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-upto $DR4 --connlimit-mask 32 --connlimit-daddr -j RETURN" >> $ipt_n
-[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $connlimitsrc -m connlimit --connlimit-above $DR4 --connlimit-mask 32 --connlimit-daddr -j SSP_AGENT" >> $ipt_n
-echo "-A SSP_OUTPUT -p tcp -j SSP_RULES" >> $ipt_n
-echo "-A SSP_PREROUTING -p tcp -j SSP_RULES" >> $ipt_n
-echo "-A SSP_RULES -m state --state RELATED,ESTABLISHED -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $mcl-upto 256 $clm-saddr $mcl-upto $DR2 $clm-daddr $mrl $DR2/sec $rlb $DR2 -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $mcl-upto 256 $clm-saddr $mcl-upto $DR3 $clm-daddr $mrl $DR3/sec $rlb $DR3 -j SSP_AGENT" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $mcl-upto 256 $clm-saddr $mcl-upto $DR4 $clm-daddr $mrl $DR4/sec $rlb $DR4 -j RETURN" >> $ipt_n
+[ "$agent_mode" == "2" ] && echo "-A SSP_AUTOM -p tcp $mcl-upto 256 $clm-saddr $mcl-above $DR4 $clm-daddr -j SSP_AGENT" >> $ipt_n
+echo "-A SSP_OUTPUT -p tcp -m state --state NEW -j SSP_RULES" >> $ipt_n
+echo "-A SSP_PREROUTING -p tcp -m state --state NEW -j SSP_RULES" >> $ipt_n
 echo "-A SSP_RULES -m set --match-set private dst -j RETURN" >> $ipt_n
 echo "-A SSP_RULES -m set --match-set servers dst -j RETURN" >> $ipt_n
-[ "$serveraddr" == "0" ] || echo "-A SSP_RULES -d $serveraddr -j RETURN" >> $ipt_n
 [ "$agent_mode" == "1" ] && echo "-A SSP_RULES -m set --match-set gfwlist dst -j SSP_AGENT" >> $ipt_n
 [ "$agent_mode" != "0" ] && echo "-A SSP_RULES -m set --match-set chnlist dst -j RETURN" >> $ipt_n
 [ "$agent_mode" == "2" ] && echo "-A SSP_RULES -m set --match-set gfwlist dst -j SSP_AUTOG" >> $ipt_n
@@ -85,34 +87,19 @@ echo "-A SSP_RULES -m set --match-set servers dst -j RETURN" >> $ipt_n
 echo "COMMIT" >> $ipt_n && iptables-restore --noflush < $ipt_n && rm -rf $ipt_n || return 1
 }
 
-ipt_filter()
-{
-echo "*filter" > $ipt_f
-echo ":SSP_INPUT - [0:0]" >> $ipt_f
-echo "-A INPUT -j SSP_INPUT" >> $ipt_f
-echo "-A SSP_INPUT -m set --match-set private src -j RETURN" >> $ipt_f
-echo "-A SSP_INPUT -p tcp -m set --match-set servers src -m tcp --tcp-flags RST RST -m state --state RELATED,ESTABLISHED -m limit --limit 1/min --limit-burst 1 -j RETURN" >> $ipt_f
-echo "-A SSP_INPUT -p tcp -m set --match-set servers src -m tcp --tcp-flags RST RST -j DROP" >> $ipt_f
-[ "$serveraddr" == "0" ] || echo "-A SSP_INPUT -s $serveraddr -p tcp -m tcp --tcp-flags RST RST -m state --state RELATED,ESTABLISHED -m limit --limit 1/min --limit-burst 1 -j RETURN" >> $ipt_f
-[ "$serveraddr" == "0" ] || echo "-A SSP_INPUT -s $serveraddr -p tcp -m tcp --tcp-flags RST RST -j DROP" >> $ipt_f
-echo "-A SSP_INPUT -p tcp -m tcp --tcp-flags RST RST -m state --state INVALID,NEW -j DROP" >> $ipt_f
-echo "-A SSP_INPUT -j RETURN" >> $ipt_f
-echo "COMMIT" >> $ipt_f && iptables-restore --noflush < $ipt_f && rm -rf $ipt_f || return 1
-}
-
 usage()
 {
 cat <<-EOF
 
   ss-rules [选项] [赋值]            [说明]
-           -s     <serveraddr>      服务器地址      支持域名和IP/CIDR格式 赋值[0]禁用
+           -s     <servers_list>    服务器地址列表  IP/CIDR格式
            -i     <local_port>      本地端口        
            -g     <gfw_list>        黑名单地址列表  IP/CIDR格式
            -c     <chn_list>        国内路由表      IP/CIDR格式
            -e     <chnexp_list>     白名单地址列表  IP/CIDR格式
            -b     <black_ip>        黑名单地址      多个IP/CIDR使用[,]隔开
            -w     <white_ip>        白名单地址      多个IP/CIDR使用[,]隔开
-           -a     <agent_mode>      透明代理模式    全局代理[0] 国内路由表[1] 黑名单域名[2]
+           -a     <agent_mode>      透明代理模式    全局代理[0] 国内路由[1] 黑白名单[2]
                   <diversion_rate>  自动分流        灵敏[1] 准确[2]
            -t                       透明代理协议    TCP[REDIRECT]
            -f                       清除规则        
@@ -127,7 +114,7 @@ while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
   case "$arg" in
     s)
       [ -z "$OPTARG" ] && usage 2
-      serveraddr="$OPTARG"
+      servers_list="$OPTARG"
       ;;
     i)
       [ -z "$OPTARG" ] && usage 3
@@ -157,10 +144,10 @@ while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
       [ -z "$OPTARG" ] && usage 9
       agentmode_diversionrate="$OPTARG"
       agent_mode=${agentmode_diversionrate:0:1}
-      [ "$agent_mode" == "2" ] && diversion_rate=${agentmode_diversionrate:1:1} && DR1="$diversion_rate" && DR2=$(expr $DR1 \* 2) && DR4=$(expr $DR1 \* 4)
+      [ "$agent_mode" == "2" ] && diversion_rate=${agentmode_diversionrate:1:1} && DR1="$diversion_rate" && DR2=$(expr $DR1 \* 2) && DR3=$(expr $DR1 \* 3) && DR4=$(expr $DR1 \* 4)
       ;;
     t)
-      flush_rules 2>/dev/null && gen_ipset && ipt_nat && ipt_filter
+      flush_rules 2>/dev/null && gen_ipset && ipt_nat
       ;;
     f)
       flush_rules 2>/dev/null
