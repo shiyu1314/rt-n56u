@@ -49,9 +49,7 @@ ipset -! restore <<-EOF || return 1
   $(for privateaddr in $private_addr; do echo "add private $privateaddr"; done)
   $(for blackip in $black_ip; do echo "add gfwlist $blackip"; done)
   $(for whiteip in $white_ip; do echo "add chnlist $whiteip"; done)
-  $(cat ${gfw_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add gfwlist /")
   $(cat ${chn_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add chnlist /")
-  $(cat ${chnexp_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add chnlist /")
   $(cat ${servers_list:=/dev/null} 2>/dev/null | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}" | sed -e "s/^/add servers /")
 EOF
 }
@@ -94,9 +92,7 @@ cat <<-EOF
   ss-rules [选项] [赋值]            [说明]
            -s     <servers_list>    服务器地址列表  IP/CIDR格式
            -i     <local_port>      本地端口        
-           -g     <gfw_list>        黑名单地址列表  IP/CIDR格式
            -c     <chn_list>        国内路由表      IP/CIDR格式
-           -e     <chnexp_list>     白名单地址列表  IP/CIDR格式
            -b     <black_ip>        黑名单地址      多个IP/CIDR使用[,]隔开
            -w     <white_ip>        白名单地址      多个IP/CIDR使用[,]隔开
            -a     <agent_mode>      透明代理模式    全局代理[0] 国内路由[1] 黑白名单[2]
@@ -110,7 +106,7 @@ exit $1
 }
 
 logger -st "SSP[$$]Rules" "任务开始" && \
-while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
+while getopts ":s:i:c:b:w:a:tmfh" arg; do
   case "$arg" in
     s)
       [ -z "$OPTARG" ] && usage 2
@@ -120,17 +116,9 @@ while getopts ":s:i:g:c:e:b:w:a:tmfh" arg; do
       [ -z "$OPTARG" ] && usage 3
       local_port="$OPTARG"
       ;;
-    g)
-      [ -z "$OPTARG" ] && usage 4
-      gfw_list="$OPTARG"
-      ;;
     c)
       [ -z "$OPTARG" ] && usage 5
       chn_list="$OPTARG"
-      ;;
-    e)
-      [ -z "$OPTARG" ] && usage 6
-      chnexp_list="$OPTARG"
       ;;
     b)
       [ -z "$OPTARG" ] && usage 7

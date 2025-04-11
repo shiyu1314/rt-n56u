@@ -863,7 +863,7 @@
 			{"ss_custom_chnlist","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_dns_local_port","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_dns_remote_server","",NULL, EVM_RESTART_SHADOWSOCKS},
-			{"dns_forwarder_enable", "", NULL, EVM_RESTART_SHADOWSOCKS},
+			{"smartdns_enable", "", NULL, EVM_RESTART_SHADOWSOCKS},
 			{"ss_server_num_x","",NULL, EVM_RESTART_SHADOWSOCKS},
 			{"scripts.ssp_custom.conf", "File", NULL, EVM_RESTART_SHADOWSOCKS|EVM_BLOCK_UNSAFE},
 			{"SssList", "Group", ARGV((char*)variables_ShadowsocksConf_SssList, "8", "55", "ss_server_num_x"), EVM_RESTART_SHADOWSOCKS},

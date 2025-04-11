@@ -609,8 +609,15 @@ EOF
 	for i in dnsmasq.conf hosts ; do
 		[ -f "$dir_storage/$i" ] && mv -n "$dir_storage/$i" "$dir_dnsmasq"
 	done
-	if $(cat "$user_dnsmasq_conf" | grep -q "^conf-dir=/tmp/SSP/gfwlist") ; then
+	if $(cat "$user_dnsmasq_conf" | grep -q "^### gfwlist related resolve") ; then
+		sed -i 's/^no-resolv/#no-resolv/g' $user_dnsmasq_conf
+		sed -i 's/^server=127.0.0.1~/#server=127.0.0.1~/g' $user_dnsmasq_conf
+		sed -i 's/^min-cache-ttl=/#min-cache-ttl=/g' $user_dnsmasq_conf
+		sed -i 's/^max-cache-ttl=/#max-cache-ttl=/g' $user_dnsmasq_conf
 		sed -i 's:^conf-dir=/tmp/SSP/gfwlist:#conf-dir=/tmp/SSP/gfwlist:g' $user_dnsmasq_conf
+	fi
+	if [ ! -s "$user_dnsmasq_conf" ] ; then
+		rm -rf $user_dnsmasq_conf
 	fi
 	if [ ! -f "$user_dnsmasq_conf" ] ; then
 		cat > "$user_dnsmasq_conf" <<EOF
@@ -645,6 +652,9 @@ dhcp-option=252,"\n"
 ### Keep DHCP host name valid at any times
 #dhcp-to-host
 
+### Always perform DNS queries to all servers
+all-servers
+
 EOF
 	if [ -f /usr/bin/vlmcsd ]; then
 		cat >> "$user_dnsmasq_conf" <<EOF
@@ -657,7 +667,10 @@ EOF
 	if [ -d $dir_gfwlist ]; then
 		cat >> "$user_dnsmasq_conf" <<EOF
 ### gfwlist related resolve
+#no-resolv
+#server=127.0.0.1~60
 #min-cache-ttl=3600
+#max-cache-ttl=86400
 #conf-dir=/tmp/SSP/gfwlist
 
 EOF

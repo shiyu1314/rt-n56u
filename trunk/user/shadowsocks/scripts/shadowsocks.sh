@@ -3,7 +3,8 @@
 USBB_DIR=$(find /media/ -name SSP)
 SYSB_DIR="/usr/bin"
 CONF_DIR="/tmp/SSP"
-CRON_CONF="/etc/storage/cron/crontabs/$(nvram get http_username)"
+ETCS_DIR="/etc/storage"
+CRON_CONF="$ETCS_DIR/cron/crontabs/$(nvram get http_username)"
 [ -n "$USBB_DIR" ] && EXTB_DIR="$USBB_DIR" || EXTB_DIR="$CONF_DIR"
 
 ([ "$EXTB_DIR" == "$USBB_DIR" ] && echo "$(date "+%Y-%m-%d_%H:%M:%S")" > $EXTB_DIR/SSPUSBDIR)&
@@ -19,22 +20,24 @@ ss_local_bin="$SYSB_DIR/ss-orig-local"
 ssr_local_bin="$SYSB_DIR/ssr-local"
 local_bin="ss-local"
 local_link="/var/ss-local"
-#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
-#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
-#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/naive or $SYSB_DIR/naive
-#$SYSB_DIR/ss-redir(ssr-local) -> /var/ss-redir(ssr-local) -> $EXTB_DIR/hysteria2 or $SYSB_DIR/hysteria2
+#$SYSB_DIR/ss-redir(ss-local) -> /var/ss-redir(ss-local) -> $EXTB_DIR/trojan or $SYSB_DIR/trojan
+#$SYSB_DIR/ss-redir(ss-local) -> /var/ss-redir(ss-local) -> $EXTB_DIR/v2ray or $SYSB_DIR/v2ray
+#$SYSB_DIR/ss-redir(ss-local) -> /var/ss-redir(ss-local) -> $EXTB_DIR/naive or $SYSB_DIR/naive
+#$SYSB_DIR/ss-redir(ss-local) -> /var/ss-redir(ss-local) -> $EXTB_DIR/hysteria2 or $SYSB_DIR/hysteria2
 v2rp_bin="v2ray-plugin"
 v2rp_link="/var/v2ray-plugin"
 #$SYSB_DIR/v2ray-plugin -> /var/v2ray-plugin -> $EXTB_DIR/v2ray-plugin or $SYSB_DIR/ss-v2ray-plugin
 
-dnscqstart="$CONF_DIR/dnscqstart"
+aiderstart="$CONF_DIR/aiderstart"
 socksstart="$CONF_DIR/socksstart"
 rulesstart="$CONF_DIR/rulesstart"
 redirstart="$CONF_DIR/redirstart"
 scoresfile="$CONF_DIR/scoresfile"
 ubin_log_file="/tmp/ss-redir.log"
+ssp_custom_conf="$ETCS_DIR/ssp_custom.conf"
 
-sspbinname=$(cat /etc/storage/ssp_custom.conf | grep '^sspbinname' | awk -F\| '{print $2}')
+sspbinname=$(grep '^sspbinname' $ssp_custom_conf | awk -F\| '{print $2}')
+aid_dns=$(nvram get smartdns_enable)
 autorec=$(nvram get ss_watchcat_autorec)
 ss_enable=$(nvram get ss_enable)
 ss_type=$(nvram get ss_type)
@@ -44,21 +47,25 @@ ss_socks=$(nvram get ss_socks)
 ss_local_port=$(nvram get ss_local_port)
 ss_redir_port=$(expr $ss_local_port + 1)
 ss_mtu=$(nvram get ss_mtu)
-ss_dns_p=$(nvram get ss_dns_local_port)
-ss_dns_s=$(nvram get ss_dns_remote_server)
 nodesnum=$(nvram get ss_server_num_x)
-dnsfsmip=$(echo "$ss_dns_s" | awk -F: '{print $1}')
-dnstcpsp=$(echo "$ss_dns_s" | sed 's/:/~/g')
+dns_local_port=$(nvram get ss_dns_local_port)
+dns_remote=$(nvram get ss_dns_remote_server)
+dns_remote_addr=$(echo "$dns_remote" | awk -F: '{print $1}')
+dns_remote_port=$(echo "$dns_remote" | awk -F: '{print $2}')
 
-dnsfslsp="127.0.0.1#$ss_dns_p"
-dnschndt="/etc/storage/chnlist/chnlist_domain.txt"
+LoopBackAddr="127.0.0.1"
+smartdns_conf="$CONF_DIR/smartdns.conf"
+serveraddrisip="$CONF_DIR/serveraddrisip.txt"
+serveraddrnoip="$CONF_DIR/serveraddrnoip.txt"
+
+dnschndt="$ETCS_DIR/chnlist/chnlist_domain.txt"
 dnschndp="$CONF_DIR/chnlist_domain.txt"
 dnschndm="$CONF_DIR/chnlist_domain.md5"
-dnsgfwdt="/etc/storage/gfwlist/gfwlist_domain.txt"
+dnsgfwdt="$ETCS_DIR/gfwlist/gfwlist_domain.txt"
 dnsgfwdp="$CONF_DIR/gfwlist_domain.txt"
 dnsgfwdm="$CONF_DIR/gfwlist_domain.md5"
 dnslistc="$CONF_DIR/gfwlist/dnsmasq.conf"
-dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
+dnsmasqc="$ETCS_DIR/dnsmasq/dnsmasq.conf"
 
 [ "$ssp_type" == "0" ] && bin_type="SS"
 [ "$ssp_type" == "1" ] && bin_type="SSR"
@@ -76,12 +83,10 @@ dnsmasqc="/etc/storage/dnsmasq/dnsmasq.conf"
 [ -e "$EXTB_DIR/hysteria2" ] && chmod +x $EXTB_DIR/hysteria2 && ssp_hysteria2="$EXTB_DIR/hysteria2" || ssp_hysteria2="$SYSB_DIR/hysteria2"
 [ -e "$EXTB_DIR/v2ray" ] && chmod +x $EXTB_DIR/v2ray && ssp_v2ray="$EXTB_DIR/v2ray" || ssp_v2ray="$SYSB_DIR/v2ray"
 [ -e "$EXTB_DIR/v2ray-plugin" ] && chmod +x $EXTB_DIR/v2ray-plugin && ssp_v2rp="$EXTB_DIR/v2ray-plugin" || ssp_v2rp="$SYSB_DIR/ss-v2ray-plugin"
-[ -L /etc/storage/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
-rm -rf /etc/storage/chinadns/chnroute.txt && tar jxf /etc_ro/chnroute.bz2 -C /etc/storage/chinadns
-[ -e $EXTB_DIR/chnroute.txt ] && \
-[ $(cat /etc/storage/chinadns/chnroute.txt | wc -l) -ne $(cat $EXTB_DIR/chnroute.txt | wc -l) ] && \
-rm -rf /etc/storage/chinadns/chnroute.txt && \
-ln -sf $EXTB_DIR/chnroute.txt /etc/storage/chinadns/chnroute.txt
+[ -L $ETCS_DIR/chinadns/chnroute.txt ] && [ ! -e $EXTB_DIR/chnroute.txt ] && \
+rm -rf $ETCS_DIR/chinadns/chnroute.txt && tar jxf /etc_ro/chnroute.bz2 -C $ETCS_DIR/chinadns
+[ -e $EXTB_DIR/chnroute.txt ] && [ $(cat $ETCS_DIR/chinadns/chnroute.txt | wc -l) -ne $(cat $EXTB_DIR/chnroute.txt | wc -l) ] && \
+rm -rf $ETCS_DIR/chinadns/chnroute.txt && ln -sf $EXTB_DIR/chnroute.txt $ETCS_DIR/chinadns/chnroute.txt
 
 stopp()
 {
@@ -100,7 +105,7 @@ sed -i '/ss-watchcat.sh/d' $CRON_CONF && restart_crond
 stopp ss-watchcat.sh
 nvram set link_error=0
 nvram set wait_times=0
-nvram set server_infor=snum#type#addr#port
+nvram set server_infor=snum──type──addr:port
 nvram set watchcat_state=stopped
 return 0
 }
@@ -121,7 +126,7 @@ logger -st "SSP[$$]$bin_type" "关闭透明代理" && ss-rules -f
 
 custom_chnlist()
 {
-chndnum=$(cat $dnschndt | grep -v '^\.' | wc -l)
+chndnum=$(grep -v '^\.' $dnschndt | wc -l)
 chnfnum=${chndnum:0}
 cp -rf $dnschndt $dnschndp
 md5sum $dnschndp > $dnschndm
@@ -136,14 +141,14 @@ if [ $(cat $dnschndt | wc -l) -ge $chnfnum ]; then
   return 0
 else
   logger -st "SSP[$$]WARNING" "自定义白名单域名发生错误!恢复默认白名单域名"
-  rm -rf $dnschndt && tar jxf /etc_ro/chnlist.bz2 -C /etc/storage/chnlist
+  rm -rf $dnschndt && tar jxf /etc_ro/chnlist.bz2 -C $ETCS_DIR/chnlist
   return 0
 fi
 }
 
 custom_gfwlist()
 {
-gfwdnum=$(cat $dnsgfwdt | grep -v '^\.' | wc -l)
+gfwdnum=$(grep -v '^\.' $dnsgfwdt | wc -l)
 gfwfnum=${gfwdnum:0}
 cp -rf $dnsgfwdt $dnsgfwdp
 md5sum $dnsgfwdp > $dnsgfwdm
@@ -159,20 +164,50 @@ if [ $(cat $dnsgfwdt | wc -l) -ge $gfwfnum ]; then
   return 0
 else
   logger -st "SSP[$$]WARNING" "自定义黑名单域名发生错误!恢复默认黑名单域名"
-  rm -rf $dnsgfwdt && tar jxf /etc_ro/gfwlist.bz2 -C /etc/storage/gfwlist
+  rm -rf $dnsgfwdt && tar jxf /etc_ro/gfwlist.bz2 -C $ETCS_DIR/gfwlist
   return 0
 fi
+}
+
+aid_dns()
+{
+cat > "$smartdns_conf" << EOF
+log-num 2
+log-syslog yes
+speed-check-mode tcp:443,tcp:80,ping
+response-mode fastest-ip
+dualstack-ip-selection no
+ca-file $ETCS_DIR/cacerts/cacert.pem
+bind-tcp $LoopBackAddr:$dns_local_port
+server-tcp $dns_remote
+EOF
+for resolvdns in $(awk '{print $2}' /etc/resolv.conf | grep -v "$LoopBackAddr"); do
+  echo "server $resolvdns:53" >> $smartdns_conf
+done
+if [ "$ss_mode" != "0" ]; then
+  echo "ipset chnlist" >> $smartdns_conf
+  echo "ipset-no-speed gfwlist" >> $smartdns_conf
+fi
+cat > "$aiderstart" << EOF
+#!/bin/sh
+
+smartdns -c $smartdns_conf
+EOF
 }
 
 del_dns_conf()
 {
 logger -st "SSP[$$]$bin_type" "清除解析规则"
 sed -i 's/^### gfwlist related.*/### gfwlist related resolve/g' $dnsmasqc
+sed -i 's/^no-resolv/#no-resolv/g' $dnsmasqc
+sed -i 's/^server='$LoopBackAddr'~.*/#server='$LoopBackAddr'~'$dns_local_port'/g' $dnsmasqc
 sed -i 's/^min-cache-ttl=/#min-cache-ttl=/g' $dnsmasqc
+sed -i 's/^max-cache-ttl=/#max-cache-ttl=/g' $dnsmasqc
 sed -i 's:^conf-dir='$CONF_DIR'/gfwlist:#conf-dir='$CONF_DIR'/gfwlist:g' $dnsmasqc
 rm -rf $dnslistc
-rm -rf $dnscqstart
-stopp dns-forwarder
+rm -rf $aiderstart
+rm -rf $smartdns_conf
+stopp smartdns
 custom_chnlist
 custom_gfwlist
 }
@@ -183,9 +218,9 @@ logger -st "SSP[$$]$bin_type" "创建解析规则"
 grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("server=/%s/'$2'\n", $1, $1 )}' >> $dnslistc
 if [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then
   grep -v '^#' $dnsgfwdt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/gfwlist\n", $1, $1 )}' >> $dnslistc
-  grep -v '^#' $dnschndt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/chnlist\n", $1, $1 )}' >> $dnslistc
+  [ "$aid_dns" == "0" ] && grep -v '^#' $dnschndt | grep -v '^$' | sed 's/^\.//g' | awk '{printf("ipset=/%s/chnlist\n", $1, $1 )}' >> $dnslistc
 fi
-[ -e "$CONF_DIR/Serveraddr-noip" ] && cat $CONF_DIR/Serveraddr-noip | awk '{printf("ipset=/%s/servers\n", $1, $1 )}' >> $dnslistc
+[ -e "$serveraddrnoip" ] && awk '{printf("ipset=/%s/servers\n", $1, $1 )}' $serveraddrnoip >> $dnslistc
 for addgfw in $(nvram get ss_custom_gfwlist | sed 's/,/ /g'); do
   dnsspoofing=$(echo $addgfw | grep '^#' | sed 's/#//g')
   if [ "$dnsspoofing" != "" ]; then
@@ -195,7 +230,10 @@ for addgfw in $(nvram get ss_custom_gfwlist | sed 's/,/ /g'); do
   fi
 done
 sed -i 's/^### gfwlist related.*/### gfwlist related resolve by '$1' '$2'/g' $dnsmasqc
+[ "$aid_dns" == "1" ] && sed -i 's/^#no-resolv/no-resolv/g' $dnsmasqc
+[ "$aid_dns" == "1" ] && sed -i 's/^#server='$LoopBackAddr'~.*/server='$LoopBackAddr'~'$dns_local_port'/g' $dnsmasqc
 sed -i 's/^#min-cache-ttl=/min-cache-ttl=/g' $dnsmasqc
+sed -i 's/^#max-cache-ttl=/max-cache-ttl=/g' $dnsmasqc
 [ -e "$dnslistc" ] && sed -i 's:^#conf-dir='$CONF_DIR'/gfwlist:conf-dir='$CONF_DIR'/gfwlist:g' $dnsmasqc
 return 0
 }
@@ -203,38 +241,27 @@ return 0
 gen_dns_conf()
 {
 del_dns_conf
-if [ "$1" != "0" ] && [ "$(nvram get dns_forwarder_enable)" == "1" ]; then
-  get_dns_conf dns-forwarder "$dnsfslsp"
-  cat > "$dnscqstart" << EOF
-#!/bin/sh
-
-start-stop-daemon -S -b -N 0 -x dns-forwarder -- -b 0.0.0.0 -p $ss_dns_p -s $ss_dns_s
-EOF
-elif [ "$1" != "0" ] && [ "$(nvram get dns_forwarder_enable)" == "0" ]; then
-  get_dns_conf dnsmasq-tcpdns "$dnstcpsp"
+if [ "$1" != "0" ]; then
+  [ "$aid_dns" == "1" ] && dnstag="dnsmasq+smartdns" && aid_dns
+  get_dns_conf ${dnstag:=dnsmasq} "$dns_remote_addr~$dns_remote_port"
 fi
-[ -e "$dnscqstart" ] && chmod +x $dnscqstart && $dnscqstart
+[ -e "$aiderstart" ] && chmod +x $aiderstart && $aiderstart
 restart_dhcpd
 }
 
 del_json_file()
 {
 logger -st "SSP[$$]$bin_type" "清除配置文件"
+nvram set link_times=0
 nvram set turn_json_file=0
+rm -rf $scoresfile
 rm -rf $CONF_DIR/*.md5
 rm -rf $CONF_DIR/*.toml
 rm -rf $CONF_DIR/*.json
 rm -rf $CONF_DIR/*-jsonlist
 rm -rf $CONF_DIR/Nodes-list
-rm -rf $CONF_DIR/Serveraddr-isip
-rm -rf $CONF_DIR/Serveraddr-noip
-return 0
-}
-
-del_score_file()
-{
-rm -rf $scoresfile
-nvram set link_times=0
+rm -rf $serveraddrisip
+rm -rf $serveraddrnoip
 return 0
 }
 
@@ -255,23 +282,20 @@ killall -q -SIGUSR2 detect_internet
 
 stop_ssp()
 {
-[ -n "$1" ] && nvram set ss_enable=0 && logger -st "SSP[$$]WARNING" "$1"
+[ -n "$1" ] && nvram set ss_enable=0 && ss_enable="0" && logger -st "SSP[$$]WARNING" "$1"
 if [ "$ss_enable" == "0" ]; then
   stop_watchcat
   stop_socks
   stop_rules
   gen_dns_conf 0
   del_json_file
-  del_score_file
   nvram set start_rules=0
 elif [ "$(nvram get link_internet)" == "0" ]; then
   $(nvram get watchcat_state | grep -q 'watchcat_stop_ssp') || stop_watchcat
   stop_socks
   stop_rules
   gen_dns_conf 0
-  del_json_file
-  del_score_file
-  nvram set start_rules=0
+  nvram set start_rules=1
 else
   $(nvram get watchcat_state | grep -q 'watchcat_stop_ssp') || stop_watchcat
 fi
@@ -297,7 +321,7 @@ turn_json_file()
   ss_obfs_param=$(nvram get ss_obfs_param_x$j)   # SS SSR        VMess       hysteria2
   echo "$i#$node_type#$server_addr#$server_port#$server_key#$server_sni#$ss_method#$ss_protocol#$ss_proto_param#$ss_obfs#$ss_obfs_param" >> $CONF_DIR/Nodes-list
 done && md5sum -c -s $CONF_DIR/Nodes-list.md5 || return 1
-[ "$(cat $CONF_DIR/$bin_type-jsonlist 2>/dev/null | wc -l)" != "1" ] || return 0
+[ "$(cat $CONF_DIR/$bin_type-jsonlist | wc -l)" != "1" ] || return 0
 [ "$(nvram get turn_json_file)" == "1" ] || return 0
 logger -st "SSP[$$]$bin_type" "更换配置文件" && nvram set link_times=0
 turn_temp=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist)
@@ -311,18 +335,18 @@ addr_isip_noip()
 {
 addr_isip=$(echo "$1" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}")
 if [ "$addr_isip" == "$1" ]; then
-  echo "$addr_isip" >> $CONF_DIR/Serveraddr-isip
+  echo "$addr_isip" >> $serveraddrisip
 else
-  echo "$1" >> $CONF_DIR/Serveraddr-noip
+  echo "$1" >> $serveraddrnoip
 fi
 }
 
 gen_json_file()
 {
 [ "$bin_type" == "Custom" ] || [ "$nodesnum" -ge "1" ] || $(stop_ssp "请到[节点设置]添加服务器" && return 1) || exit 1
-confoptarg=$(cat /etc/storage/ssp_custom.conf | grep '^confoptarg' | awk -F\| '{print $2}')
-serveraddr=$(cat /etc/storage/ssp_custom.conf | grep '^serveraddr' | awk -F\| '{print $2}')
-serverport=$(cat /etc/storage/ssp_custom.conf | grep '^serverport' | awk -F\| '{print $2}')
+confoptarg=$(grep '^confoptarg' $ssp_custom_conf | awk -F\| '{print $2}')
+serveraddr=$(grep '^serveraddr' $ssp_custom_conf | awk -F\| '{print $2}')
+serverport=$(grep '^serverport' $ssp_custom_conf | awk -F\| '{print $2}')
 turn_json_file || del_json_file
 [ "$autorec" == "1" ] && nvram set turn_json_file=1 || nvram set turn_json_file=0
 if [ ! -e "$CONF_DIR/Nodes-list.md5" ]; then
@@ -835,14 +859,14 @@ EOF
   addr_isip_noip $serveraddr
   r_json_file="0-$sspbinname-redir.json"
   l_json_file="$r_json_file"
-  cat /etc/storage/ssp_custom.conf | grep -v '^#' | grep -v '^sspbinname' | grep -v '^confoptarg' | \
+  grep -v '^#' $ssp_custom_conf | grep -v '^sspbinname' | grep -v '^confoptarg' | \
   grep -v '^serveraddr' | grep -v '^serverport' >> $CONF_DIR/$r_json_file
   echo "$serveraddr#$serverport#$r_json_file#$l_json_file#null" > $CONF_DIR/Custom-jsonlist
-  md5sum /etc/storage/ssp_custom.conf > $CONF_DIR/ssp_custom.md5
+  md5sum $ssp_custom_conf > $CONF_DIR/ssp_custom.md5
   md5sum $CONF_DIR/Nodes-list > $CONF_DIR/Nodes-list.md5
 fi
 [ "$bin_type" == "Custom" ] || [ "$bin_type" == "Auto" ] || \
-$(cat $CONF_DIR/$bin_type-jsonlist 2>/dev/null | grep -q "$bin_type-redir") || \
+$(grep -q "$bin_type-redir" $CONF_DIR/$bin_type-jsonlist) || \
 $(stop_ssp "请到[节点设置]添加 $bin_type 节点" && return 1) || exit 1
 ssp_server_addr=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist | awk -F# '{print $1}')
 ssp_server_port=$(tail -n 1 $CONF_DIR/$bin_type-jsonlist | awk -F# '{print $2}')
@@ -897,58 +921,22 @@ chmod +x $socksstart && logger -st "SSP[$$]$bin_type" "开启本地代理" && $s
 
 sip_addr()
 {
-if [ -e "$CONF_DIR/Serveraddr-isip" ]; then
-  echo " -s $CONF_DIR/Serveraddr-isip"
-else
-  echo ""
-fi
+[ -e "$serveraddrisip" ] && echo " -s $serveraddrisip" || echo ""
 }
 
 sip_port()
 {
-if [ "$ssp_ubin" == "$local_bin" ]; then
-  echo " -i $ss_redir_port"
-else
-  echo " -i $ss_local_port"
-fi
-}
-
-gfw_list()
-{
-if [ "$ss_mode" == "0" ] || [ ! -e "$EXTB_DIR/GFWblackip.conf" ]; then # global or not GFWblackip.conf
-  echo ""
-elif [ "$ss_mode" == "1" ]; then # chnroute
-  echo ""
-elif [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then # gfwlist
-  echo " -g $EXTB_DIR/GFWblackip.conf"
-fi
+[ "$ssp_ubin" == "$local_bin" ] && echo " -i $ss_redir_port" || echo " -i $ss_local_port"
 }
 
 chn_list()
 {
-if [ "$ss_mode" == "0" ]; then # global
-  echo ""
-elif [ "$ss_mode" == "1" ]; then # chnroute
-  echo " -c /etc/storage/chinadns/chnroute.txt"
-elif [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then # gfwlist
-  echo ""
-fi
-}
-
-chnexp_list()
-{
-if [ "$ss_mode" == "0" ] || [ ! -e "$EXTB_DIR/CHNwhiteip.conf" ]; then # global or not CHNwhiteip.conf
-  echo ""
-elif [ "$ss_mode" == "1" ]; then # chnroute
-  echo " -e $EXTB_DIR/CHNwhiteip.conf"
-elif [ "$ss_mode" == "21" ] || [ "$ss_mode" == "22" ]; then # gfwlist
-  echo ""
-fi
+[ "$ss_mode" == "1" ] && [ "$aid_dns" == "0" ] && echo " -c $ETCS_DIR/chinadns/chnroute.txt" || echo ""
 }
 
 black_ip()
 {
-[ "$ss_mode" != "0" ] && echo " -b $dnsfsmip" || echo ""
+[ "$ss_mode" != "0" ] && echo " -b $dns_remote_addr" || echo ""
 }
 
 white_ip()
@@ -977,11 +965,7 @@ echo " -t"
 
 conffile()
 {
-if [ "$ssp_ubin" == "$local_bin" ]; then
-  echo "$CONF_DIR/$local_json_file"
-else
-  echo "$CONF_DIR/$redir_json_file"
-fi
+[ "$ssp_ubin" == "$local_bin" ] && echo "$CONF_DIR/$local_json_file" || echo "$CONF_DIR/$redir_json_file"
 }
 
 opt_arg()
@@ -1016,9 +1000,7 @@ killall -q -9 ss-rules
 ss-rules\
 $(sip_addr)\
 $(sip_port)\
-$(gfw_list)\
 $(chn_list)\
-$(chnexp_list)\
 $(black_ip)\
 $(white_ip)\
 $(agent_mode)\
@@ -1026,8 +1008,8 @@ $(agent_pact)
 EOF
 chmod +x $rulesstart && logger -st "SSP[$$]$bin_type" "开启透明代理" && $rulesstart
 SREC="$?"
-$([ "$SREC" == "0" ] && nvram set start_rules=0 && gen_dns_conf && del_score_file && return 0) || \
-$([ "$SREC" == "1" ] && restart_firewall && gen_dns_conf && del_score_file && return 0) || \
+$([ "$SREC" == "0" ] && nvram set start_rules=0 && gen_dns_conf && return 0) || \
+$([ "$SREC" == "1" ] && restart_firewall && gen_dns_conf && return 0) || \
 $(nvram set start_rules=1 && return $SREC)
 }
 
@@ -1037,7 +1019,7 @@ cat > "$redirstart" << EOF
 #!/bin/sh
 
 conffile="$(conffile)"
-export SSL_CERT_FILE='/etc/storage/cacerts/cacert.pem'
+export SSL_CERT_FILE='$ETCS_DIR/cacerts/cacert.pem'
 nohup $ssp_ubin$(opt_arg)$(udp_ext) &>$ubin_log_file &
 EOF
 chmod +x $redirstart && logger -st "SSP[$$]$bin_type" "启动代理进程" && $redirstart
@@ -1047,14 +1029,14 @@ $(sleep 1 && pidof $ssp_ubin &>/dev/null) || $(sleep 1 && pidof $ssp_ubin &>/dev
 
 ncron()
 {
-!(cat "$CRON_CONF" 2>/dev/null | grep -q "ss-watchcat.sh") && \
+!(grep -q "ss-watchcat.sh" $CRON_CONF) && \
 sed -i '/ss-watchcat.sh/d' $CRON_CONF && \
 echo "*/$1 * * * * nohup $SYSB_DIR/ss-watchcat.sh 2>/dev/null &" >> $CRON_CONF || return 1
 }
 
 dcron()
 {
-$(cat "$CRON_CONF" 2>/dev/null | grep "ss-watchcat.sh" | grep -q -v "/$1") && \
+$(grep "ss-watchcat.sh" $CRON_CONF | grep -q -v "/$1") && \
 sed -i '/ss-watchcat.sh/d' $CRON_CONF && \
 echo "*/$1 * * * * nohup $SYSB_DIR/ss-watchcat.sh 2>/dev/null &" >> $CRON_CONF || return 1
 }
@@ -1075,7 +1057,7 @@ gen_json_file
 start_socks || stop_socks
 start_redir || $(nvram set wait_times=1 && logger -st "SSP[$$]WARNING" "启动代理进程出错")
 start_rules || $(nvram set wait_times=1 && logger -st "SSP[$$]WARNING" "开启透明代理出错")
-nvram set server_infor=$ssp_server_snum#$ssp_server_type#$ssp_server_addr#$ssp_server_port
+nvram set server_infor=$ssp_server_snum──$ssp_server_type──$ssp_server_addr:$ssp_server_port
 [ "$(nvram get wait_times)" -ge "1" ] && scron 1 && exit 0
 sleep 1 && pidof ss-watchcat.sh &>/dev/null && STA_LOG="重启完成" || $SYSB_DIR/ss-watchcat.sh
 logger -st "SSP[$$]$ssp_server_type" "节点$ssp_server_snum[$ssp_server_addr:$ssp_server_port]${STA_LOG:=成功启动}" && scron 1

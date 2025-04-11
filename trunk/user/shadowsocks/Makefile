@@ -8,6 +8,7 @@ ARCHIVE_SSR_NAME=shadowsocksr-libev-master-e2373d7
 #https://github.com/shadowsocksr-backup/shadowsocksr-libev.git
 
 SRC_IPT_NAME=ipt2socks-1.1.3
+SRC_SDNS_NAME=smartdns-Release46.1
 
 CACERT_NAME=cacert.pem
 CACERT_PURL=https://curl.se/ca
@@ -30,6 +31,7 @@ all: cacert_dl chnroute_dl chnlist_dl gfwlist_dl extract_test config_test
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	$(MAKE) -j$(HOST_NCPU) -C $(SRC_SSR_NAME)
 	$(MAKE) -j$(HOST_NCPU) -C $(SRC_IPT_NAME) CC="$(CC)"
+	$(MAKE) -C $(SRC_SDNS_NAME)
 endif
 	$(MAKE) -j$(HOST_NCPU) -C $(SRC_SS_NAME)
 
@@ -78,7 +80,7 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 endif
 
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
-extract_test: extract_ipt_test extract_ssr_test extract_ss_test
+extract_test: extract_ipt_test extract_sdns_test extract_ssr_test extract_ss_test
 else
 extract_test: extract_ss_test
 endif
@@ -86,6 +88,11 @@ endif
 extract_ipt_test:
 	( if [ ! -d $(SRC_IPT_NAME) ]; then \
 		tar zxf $(SRC_IPT_NAME).tar.gz ; \
+	fi )
+
+extract_sdns_test:
+	( if [ ! -d $(SRC_SDNS_NAME) ]; then \
+		tar -xf $(SRC_SDNS_NAME).tar.gz ; \
 	fi )
 
 extract_ssr_test:
@@ -99,7 +106,7 @@ extract_ss_test:
 	fi )
 
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
-config_test: config_ipt config_ssr config_ss
+config_test: config_ipt config_sdns config_ssr config_ss
 else
 config_test: config_ss
 endif
@@ -127,6 +134,15 @@ config_ipt:
 
 configure_ipt:
 
+config_sdns:
+	( if [ -f ./config_done ]; then \
+		echo "the same configuration"; \
+	else \
+		make configure_sdns && touch sdns_config_done; \
+	fi )
+
+configure_sdns:
+
 configure_ssr:
 	( cd $(SRC_SSR_NAME) ; \
 	ac_cv_prog_PCRE_CONFIG="$(STAGEDIR)/bin/pcre-config" \
@@ -153,10 +169,15 @@ configure_ss:
 		--build=$(HOST_BUILD) ; \
 	)
 
-clean: clean_ipt clean_ssr clean_ss
+clean: clean_sdns clean_ipt clean_ssr clean_ss
 	rm -f ssr_config_done ss_config_done ipt_config_done
 	rm -rf $(CACERT_DIR)
 	rm -rf $(CHNROUTE_DIR)
+
+clean_sdns:
+	( if [ -f $(SRC_SDNS_NAME)/Makefile ] ; then \
+		$(MAKE) -C $(SRC_SDNS_NAME) clean ; \
+	fi )
 
 clean_ipt:
 	( if [ -f $(SRC_IPT_NAME)/Makefile ] ; then \
@@ -187,6 +208,7 @@ ifeq ($(CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS),y)
 	$(ROMFSINST) $(THISDIR)/chnroute/chnroute.bz2 /etc_ro/chnroute.bz2
 	$(ROMFSINST) $(THISDIR)/cacerts/cacerts.bz2 /etc_ro/cacerts.bz2
 	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_IPT_NAME)/ipt2socks /usr/bin/ipt2socks
+	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_SDNS_NAME)/src/smartdns /usr/bin/smartdns
 	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_SSR_NAME)/src/ss-redir /usr/bin/ssr-redir
 	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_SSR_NAME)/src/ss-local /usr/bin/ssr-local
 	$(ROMFSINST) -p +x $(THISDIR)/$(SRC_SS_NAME)/src/ss-redir /usr/bin/ss-orig-redir

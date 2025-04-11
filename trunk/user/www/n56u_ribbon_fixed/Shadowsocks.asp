@@ -46,7 +46,7 @@ $j(document).ready(function(){
 	init_itoggle('ss_custom_gfwlist');
 	init_itoggle('ss_dns_local_port');
 	init_itoggle('ss_dns_remote_server');
-	init_itoggle('dns_forwarder_enable');
+	init_itoggle('smartdns_enable');
 });
 
 function initial(){
@@ -55,8 +55,8 @@ function initial(){
 	show_footer();
 	change_ss_type();
 	fill_ss_status(ss_status());
-	fill_ss_forwarder_status(forwarder_status());
-	fill_ss_ipt2socks_status(ipt2socks_status());
+	fill_ss_aiddns_status(aiddns_status());
+	fill_ss_socks_status(socks_status());
 	$("chnroute_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + chnroute_count() ;
 	$("chnlist_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + chnlist_count() ;
 	$("gfwlist_count").innerHTML = '<#menu5_16_NumberOfRules#>&nbsp;&nbsp;' + gfwlist_count() ;
@@ -93,22 +93,22 @@ function fill_ss_status(status_code){
 	$("ss_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
 }
 
-function fill_ss_forwarder_status(status_code){
+function fill_ss_aiddns_status(status_code){
 	var stext = "Unknown";
 	if (status_code == 0)
 		stext = "<#Stopped#>";
 	else if (status_code == 1)
 		stext = "<#Running#>";
-	$("forwarder_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
+	$("aiddns_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
 }
 
-function fill_ss_ipt2socks_status(status_code){
+function fill_ss_socks_status(status_code){
 	var stext = "Unknown";
 	if (status_code == 0)
 		stext = "SOCKS5&nbsp;<#Stopped#>";
 	else if (status_code == 1)
 		stext = "SOCKS5&nbsp;<#Running#>";
-	$("ipt2socks_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
+	$("socks_status").innerHTML = '<span class="label label-' + (status_code != 0 ? 'success' : 'warning') + '">' + stext + '</span>';
 }
 </script>
 
@@ -247,27 +247,29 @@ function fill_ss_ipt2socks_status(status_code){
                                                 <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="chn_loadc"></span>
                                                 <span class="label label-info" style="padding: 5px 5px 5px 5px;" id="gfw_loadc"></span>
                                             </th>
-                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_EnableDNSForwarder#></th>
+                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_EnableAidSmartDns#></th>
                                             <td colspan="1">
                                                 <div class="main_itoggle">
-                                                <div id="dns_forwarder_enable_on_of">
-                                                    <input type="checkbox" id="dns_forwarder_enable_fake" <% nvram_match_x("", "dns_forwarder_enable", "1", "value=1 checked"); %><% nvram_match_x("", "dns_forwarder_enable", "0", "value=0"); %>>
+                                                <div id="smartdns_enable_on_of">
+                                                    <input type="checkbox" id="smartdns_enable_fake" <% nvram_match_x("", "smartdns_enable", "1", "value=1 checked"); %><% nvram_match_x("", "smartdns_enable", "0", "value=0"); %>>
                                                 </div>
                                                 </div>
                                                 <div style="position: absolute; margin-left: -10000px;">
-                                                    <input type="radio" value="1" name="dns_forwarder_enable" id="dns_forwarder_enable_1" <% nvram_match_x("", "dns_forwarder_enable", "1", "checked"); %>><#checkbox_Yes#>
-                                                    <input type="radio" value="0" name="dns_forwarder_enable" id="dns_forwarder_enable_0" <% nvram_match_x("", "dns_forwarder_enable", "0", "checked"); %>><#checkbox_No#>
+                                                    <input type="radio" value="1" name="smartdns_enable" id="smartdns_enable_1" <% nvram_match_x("", "smartdns_enable", "1", "checked"); %>><#checkbox_Yes#>
+                                                    <input type="radio" value="0" name="smartdns_enable" id="smartdns_enable_0" <% nvram_match_x("", "smartdns_enable", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
-                                            <td colspan="1" id="forwarder_status"></td>
+                                            <td colspan="1" id="aiddns_status"></td>
                                         </tr>
 
-                                        <tr> <th colspan="1"><#menu5_16_DNS#></th>
-                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_DNSLocalPort#></th>
+                                        <tr> <th colspan="4" style="white-space: nowrap;"><#menu5_16_DNSLocalPort#></th>
                                             <td colspan="1">
                                                 <input type="text" maxlength="6" class="input" size="6" name="ss_dns_local_port" style="width: 83px" placeholder="60" value="<% nvram_get_x("", "ss_dns_local_port"); %>">
                                             </td>
-                                            <th colspan="1" style="text-align: right; white-space: nowrap;"><#menu5_16_DNSRemoteServer#></th>
+                                            <td colspan="1"></td>
+                                        </tr>
+
+                                        <tr> <th colspan="4" style="white-space: nowrap;"><#menu5_16_DNSRemoteServer#></th>
                                             <td colspan="2">
                                                 <input type="text" maxlength="32" class="input" size="32" name="ss_dns_remote_server" style="width: 217px" placeholder="8.8.4.4:53" value="<% nvram_get_x("","ss_dns_remote_server"); %>">
                                             </td>
@@ -401,7 +403,7 @@ function fill_ss_ipt2socks_status(status_code){
                                                     <input type="radio" value="0" name="ss_socks" id="ss_socks_0" <% nvram_match_x("", "ss_socks", "0", "checked"); %>><#checkbox_No#>
                                                 </div>
                                             </td>
-                                            <td colspan="1" id="ipt2socks_status"></td>
+                                            <td colspan="1" id="socks_status"></td>
                                         </tr>
 
                                         <tr> <th colspan="4"><#menu5_16_LocalProxyPort#></th>

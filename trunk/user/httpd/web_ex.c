@@ -2041,10 +2041,10 @@ static int shadowsocks_status_hook(int eid, webs_t wp, int argc, char **argv)
 	} else {
 		websWrite(wp, "function ss_status() { return %d;}\n", 0);
 	}
-	int ss_forwarder_status_code = pids("dns-forwarder");
-	websWrite(wp, "function forwarder_status() { return %d;}\n", ss_forwarder_status_code);
-	int ss_ipt2socks_status_code = pids("ipt2socks");
-	websWrite(wp, "function ipt2socks_status() { return %d;}\n", ss_ipt2socks_status_code);
+	int ss_aiddns_status_code = pids("smartdns");
+	websWrite(wp, "function aiddns_status() { return %d;}\n", ss_aiddns_status_code);
+	int ss_socks_status_code = pids("ipt2socks");
+	websWrite(wp, "function socks_status() { return %d;}\n", ss_socks_status_code);
 	return 0;
 }
 
