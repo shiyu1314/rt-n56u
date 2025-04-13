@@ -128,13 +128,12 @@ catch_sig_fatal(int sig)
 
 	shutdown_router(0);
 
-	kill(-1, SIGTERM);
-	sleep(1);
-	sync();
-
 #ifdef MTD_FLASH_32M_REBOOT_BUG
 	system("/bin/mtd_write -r unlock mtd1");
 #else
+	kill(-1, SIGTERM);
+	sleep(1);
+	sync();
 	reboot(RB_AUTOBOOT);
 #endif
 
@@ -567,18 +566,12 @@ init_main_loop(void)
 int
 sys_exit(void)
 {
-#if defined (BOARD_GPIO_LED_POWER)
-	led_pwr_usrinverse();
-#endif
 	return kill(1, SIGTERM);
 }
 
 int
 sys_stop(void)
 {
-#if defined (BOARD_GPIO_LED_POWER)
-	led_pwr_usrinverse();
-#endif
 	return kill(1, SIGQUIT);
 }
 

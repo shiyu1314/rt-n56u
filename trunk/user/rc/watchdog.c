@@ -200,15 +200,6 @@ static void
 ez_action_reboot(void)
 {
 	logmessage("watchdog", "Perform ez-button %s...", "reboot");
-	write_storage_to_mtd();
-#if defined (USE_STORAGE)
-	safe_remove_all_stor_devices(1);
-#endif
-#if defined (USE_USB_SUPPORT)
-#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
-	power_control_usb_port(0, 0);
-#endif
-#endif
 	sys_exit();
 }
 
@@ -216,18 +207,6 @@ static void
 ez_action_shutdown(void)
 {
 	logmessage("watchdog", "Perform ez-button %s...", "shutdown");
-	write_storage_to_mtd();
-#if defined(APP_SHADOWSOCKS)
-	stop_ss();
-#endif
-#if defined (USE_STORAGE)
-	safe_remove_all_stor_devices(1);
-#endif
-#if defined (USE_USB_SUPPORT)
-#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
-	power_control_usb_port(0, 0);
-#endif
-#endif
 	sys_stop();
 }
 

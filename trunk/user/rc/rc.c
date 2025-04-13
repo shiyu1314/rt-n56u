@@ -709,6 +709,7 @@ flash_firmware(void)
 #if defined (BOARD_GPIO_LED_POWER)
 	led_pwr_usrinverse();
 #endif
+
 	stop_misc();
 	stop_services(0); // don't stop httpd/telnetd/sshd/vpn
 
@@ -721,6 +722,7 @@ flash_firmware(void)
 #if defined (USE_USB_SUPPORT)
 	stop_usb_printer_spoolers();
 #endif
+
 	stop_igmpproxy(NULL);
 	stop_detect_internet();
 
@@ -1070,7 +1072,7 @@ init_router(void)
 	notify_leds_detect_link();
 
 	start_rwfs_optware();
-#if defined(APP_NAPT66)
+#if defined (APP_NAPT66)
 	start_napt66();
 #endif
 	if (init_crontab()) {
@@ -1091,6 +1093,10 @@ shutdown_router(int level)
 	int is_ap_mode = get_ap_mode();
 	const char *script_name = SCRIPT_SHUTDOWN;
 
+#if defined (BOARD_GPIO_LED_POWER)
+	led_pwr_usrinverse();
+#endif
+
 	stop_misc();
 
 	if (level < 2)
@@ -1102,15 +1108,26 @@ shutdown_router(int level)
 #if defined (USE_STORAGE)
 	safe_remove_all_stor_devices(use_halt);
 #endif
-
 #if defined (USE_USB_SUPPORT)
 	stop_usb_printer_spoolers();
+#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
+	do {
+#if defined (BOARD_GPIO_LED_POWER)
+		led_pwr_resetusr();
+#endif
+		sleep(1);
+#if defined (BOARD_GPIO_LED_POWER)
+		led_pwr_usrinverse();
+#endif
+	} while (is_usb_storage_mounted());
+	power_control_usb_port(0, 0);
 #endif
 #if defined (BOARD_GPIO_LED_USB)
 	LED_CONTROL(BOARD_GPIO_LED_USB, LED_OFF);
 #endif
 #if defined (BOARD_GPIO_LED_USB2)
 	LED_CONTROL(BOARD_GPIO_LED_USB2, LED_OFF);
+#endif
 #endif
 
 	stop_wan();
@@ -1142,9 +1159,6 @@ shutdown_router(int level)
 
 #if defined (BOARD_GPIO_LED_LAN)
 	LED_CONTROL(BOARD_GPIO_LED_LAN, LED_OFF);
-#endif
-#if defined (BOARD_GPIO_LED_POWER)
-	led_pwr_usrinverse();
 #endif
 }
 
@@ -1776,31 +1790,10 @@ main(int argc, char **argv)
 	}
 
 	if (!strcmp(base, "reboot")) {
-		write_storage_to_mtd();
-#if defined (USE_STORAGE)
-		safe_remove_all_stor_devices(1);
-#endif
-#if defined (USE_USB_SUPPORT)
-#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
-		power_control_usb_port(0, 0);
-#endif
-#endif
 		return sys_exit();
 	}
 
 	if (!strcmp(base, "shutdown") || !strcmp(base, "halt")) {
-		write_storage_to_mtd();
-#if defined(APP_SHADOWSOCKS)
-		stop_ss();
-#endif
-#if defined (USE_STORAGE)
-		safe_remove_all_stor_devices(1);
-#endif
-#if defined (USE_USB_SUPPORT)
-#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
-		power_control_usb_port(0, 0);
-#endif
-#endif
 		return sys_stop();
 	}
 
@@ -1821,6 +1814,7 @@ main(int argc, char **argv)
 	ret = 0;
 	if (!strcmp(base, "reset_to_defaults")) {
 		erase_nvram();
+		erase_storage();
 		sys_exit();
 	}
 	else if (!strcmp(base, "run_telnetd")) {

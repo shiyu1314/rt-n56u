@@ -102,25 +102,6 @@ nvram_commit_safe(void)
 	nvram_commit();
 }
 
-void
-sys_reboot(void)
-{
-	doSystem("/sbin/mtd_storage.sh %s", "save");
-#if defined (USE_STORAGE)
-	system("ejall");
-#endif
-#if defined (USE_USB_SUPPORT)
-#if defined (BOARD_GPIO_PWR_USB) || defined (BOARD_GPIO_PWR_USB2)
-	system("usb5v 0");
-#endif
-#endif
-#ifdef MTD_FLASH_32M_REBOOT_BUG
-	system("/bin/mtd_write -r unlock mtd1");
-#else
-	kill(1, SIGTERM);
-#endif
-}
-
 char *
 rfctime(const time_t *timep)
 {
@@ -1359,7 +1340,7 @@ ej_notify_services(int eid, webs_t wp, int argc, char **argv)
 		restart_needed_bits = 0;
 		if (nvram_get_int("nvram_manual") == 1)
 			nvram_commit();
-		sys_reboot();
+		system("reboot");
 		return 0;
 	}
 
@@ -3270,7 +3251,7 @@ apply_cgi(const char *url, webs_t wp)
 	}
 	else if (!strcmp(value, " Reboot "))
 	{
-		sys_reboot();
+		system("reboot");
 		return 0;
 	}
 	else if (!strcmp(value, " Shutdown "))
@@ -3284,7 +3265,7 @@ apply_cgi(const char *url, webs_t wp)
 		websApply(wp, "Restarting.asp");
 		nvram_set_int("restore_defaults", 1);
 		nvram_commit();
-		sys_reboot();
+		system("reboot");
 		return 0;
 	}
 	else if (!strcmp(value, " RestoreStorage "))
@@ -3755,7 +3736,7 @@ do_restore_nv_cgi(const char *url, FILE *stream)
 	/* Reboot if successful */
 	if (ret == 0) {
 		websApply(stream, "Uploading.asp");
-		sys_reboot();
+		system("reboot");
 	} else {
 		websApply(stream, "UploadError.asp");
 	}
