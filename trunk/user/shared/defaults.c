@@ -34,7 +34,7 @@ struct nvram_pair router_defaults[] = {
 
 	/* Miscellaneous parameters */
 	{ "time_zone", DEF_TIMEZONE },
-	{ "log_float_ui", "1" },		/* WebUI syslog float panel mode */
+	{ "log_float_ui", "0" },		/* WebUI syslog float panel mode */
 	{ "log_ipaddr", "" },			/* syslog recipient IP */
 	{ "log_port", "514" },			/* syslog recipient Port */
 	{ "log_level", "0" },			/* Bitmask 0:off 1:denied 2:accepted */
@@ -395,7 +395,7 @@ struct nvram_pair router_defaults[] = {
 	{ "sh_num", "0" },
 	{ "computer_name", BOARD_NAME },
 	{ "pcache_reclaim", "2" },
-	{ "usb3_disable", "0" },
+	{ "usb3_disable", "1" },
 	{ "u2ec_enable", "1" },
 	{ "lprd_enable", "1" },
 	{ "rawd_enable", "0" },
