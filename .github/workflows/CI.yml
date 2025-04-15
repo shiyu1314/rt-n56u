@@ -33,16 +33,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - build_variant: "mt7620"
-            targets: "PSG1208 PSG1218 NEWIFI-MINI MI-MINI MI-3 OYE-001 5K-W20"
-          - build_variant: "mt7628"
-            targets: "HC5861B MI-NANO MZ-R13 MZ-R13P 360P2 HC5761A HC5661A"
-          - build_variant: "mt7621"
-            targets: "MI-4 MI-R4A K2P_nano K2P DIR-878 R2100 RM2100 WDR7300 CR660x"
-          - build_variant: "mt7621-usb"
-            targets: "NETGEAR-CHJ XY-C1 JCG-836PRO JCG-AC860M JCG-Y2 DIR-882 A3004NS"
           - build_variant: "MT7621+MT7603+MT7612-USB"
-            targets: "B70 E8820V2 MI-R3G MSG1500 R6220 RT-AC1200GU WR1200JS ZTE_E8820S"
+            targets: "MI-R3G"
     steps:
       - uses: actions/checkout@v4
       - name: Prepare environment
@@ -137,7 +129,7 @@ jobs:
           SP "CONFIG_FIRMWARE_INCLUDE_TUNSAFE"                   "n" "设置VPN客户端tunsafe(WireGuard协议)"
           SP "CONFIG_FIRMWARE_INCLUDE_WIREGUARD"                 "n" "设置VPN客户端WireGuard(WireGuard协议)"
           SP "CONFIG_FIRMWARE_INCLUDE_SFE"                       "y" "设置SFE(shortcut-fe)软件加速"
-          SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "y" "设置SSP代理基础程序"
+          SP "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS"               "n" "设置SSP代理基础程序"
           SP "CONFIG_FIRMWARE_INCLUDE_TROJAN"                    "n" "设置SSP代理Trojan可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSVMESS"                   "n" "设置SSP代理VMess可执行程序"
           SP "CONFIG_FIRMWARE_INCLUDE_SSNAIVE"                   "n" "设置SSP代理Naive可执行程序"
